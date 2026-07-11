@@ -8,6 +8,7 @@ import {
   clamp01,
   easeOutCubic,
   paintColumn,
+  paintRow,
   prefersReducedMotion,
 } from "./dither-paint"
 
@@ -80,6 +81,7 @@ export function BarCanvas() {
     const animate = state.current.animate && !reduce
     const duration = state.current.animationDuration
     const fx = cols / Math.max(width, 1)
+    const fy = rows / Math.max(height, 1)
 
     // Eased grow factor for bar `i` at global progress `prog`.
     const barProgress = (i: number, len: number, prog: number) => {
@@ -102,16 +104,33 @@ export function BarCanvas() {
         const selDim = emphasis !== null && emphasis !== key ? 0.3 : 1
         for (let i = 0; i < s.dataLength; i++) {
           const bp = barProgress(i, s.dataLength, prog)
-          const base = t.base[i] ?? rows - 1
-          const grown = base + ((t.top[i] ?? base) - base) * bp
-          // Bars grow from the zero baseline toward the value. Positive values
-          // sit above the baseline (smaller pixel), negative ones below it —
-          // paintColumn wants the higher edge first, so order the pair.
-          const top = Math.min(grown, base)
-          const bottom = Math.max(grown, base)
           const active = s.hoverIndex === i
           const hoverDim =
             s.hoverIndex != null && !active && s.isMouseInChart ? 0.5 : 1
+          if (s.layout === "horizontal") {
+            const band = s.bands[key]?.[i]
+            if (!band) continue
+            const rect = s.barRect(i, si, keys.length, band)
+            const start = s.x(band[0])
+            const grown = start + (s.x(band[1]) - start) * bp
+            const c0 = Math.round(Math.min(start, grown) * fx)
+            const c1 = Math.round(Math.max(start, grown) * fx)
+            const r0 = Math.round(rect.y * fy)
+            const r1 = Math.round((rect.y + rect.height) * fy)
+            for (let y = r0; y < r1; y++) {
+              paintRow(c, y, c0, c1, seed, {
+                variant,
+                intensity: intensity + (active ? 0.4 : 0),
+                dim: selDim * hoverDim,
+                stacked,
+              })
+            }
+            continue
+          }
+          const base = t.base[i] ?? rows - 1
+          const grown = base + ((t.top[i] ?? base) - base) * bp
+          const top = Math.min(grown, base)
+          const bottom = Math.max(grown, base)
           const slot = s.barSlot(i, si, keys.length)
           const c0 = Math.round(slot.x * fx)
           const c1 = Math.round((slot.x + slot.width) * fx)
@@ -193,7 +212,7 @@ export function BarCanvas() {
 
     raf = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(raf)
-  }, [cols, rows, width])
+  }, [cols, rows, width, height])
 
   const bloomActive = ctx.bloomOnHover
     ? ctx.isMouseInChart || ctx.hovered

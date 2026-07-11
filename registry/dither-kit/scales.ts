@@ -5,11 +5,108 @@ import { scaleBand, scaleLinear, scalePoint } from "d3-scale"
 import { stack as d3Stack, stackOffsetExpand } from "d3-shape"
 
 export type StackType = "default" | "stacked" | "percent"
+export type NumericDomain = [number, number]
 
 type Row = Record<string, unknown>
 
 const num = (v: unknown) =>
   typeof v === "number" && Number.isFinite(v) ? v : 0
+
+export function normalizeDomain(
+  values: number[],
+  domain?: NumericDomain,
+  includeZero = false
+): NumericDomain {
+  const finite = values.filter(Number.isFinite)
+  let lo = domain?.[0] ?? Math.min(...finite)
+  let hi = domain?.[1] ?? Math.max(...finite)
+
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return [0, 1]
+  if (lo > hi) [lo, hi] = [hi, lo]
+  if (includeZero) {
+    lo = Math.min(0, lo)
+    hi = Math.max(0, hi)
+  }
+  if (lo === hi) {
+    const pad = Math.abs(lo) * 0.05 || 1
+    lo -= pad
+    hi += pad
+  }
+  return [lo, hi]
+}
+
+export function buildValueScale(
+  values: number[],
+  size: number,
+  domain?: NumericDomain,
+  reverse = false,
+  includeZero = false
+) {
+  const scale = scaleLinear()
+    .domain(normalizeDomain(values, domain, includeZero))
+    .range(reverse ? [size, 0] : [0, size])
+  return domain ? scale : scale.nice()
+}
+
+export function normalizeRange(low: unknown, value: unknown, high: unknown) {
+  const mean = num(value)
+  let lo = typeof low === "number" && Number.isFinite(low) ? low : mean
+  let hi = typeof high === "number" && Number.isFinite(high) ? high : mean
+  if (lo > hi) [lo, hi] = [hi, lo]
+  return { low: lo, value: mean, high: hi }
+}
+
+export function nearestPointIndex(
+  points: Array<{ x: number; y: number }>,
+  px: number,
+  py: number
+) {
+  // ponytail: O(n) hit testing is right for UI-sized datasets; add a spatial
+  // index only if charts with thousands of points become a real use case.
+  let best = 0
+  let bestDistance = Number.POSITIVE_INFINITY
+  points.forEach((point, index) => {
+    const distance = (point.x - px) ** 2 + (point.y - py) ** 2
+    if (distance < bestDistance) {
+      best = index
+      bestDistance = distance
+    }
+  })
+  return best
+}
+
+export function horizontalBarRect({
+  center,
+  bandwidth,
+  start,
+  end,
+  seriesIndex,
+  seriesCount,
+  stacked,
+  valueToPx,
+}: {
+  center: number
+  bandwidth: number
+  start: number
+  end: number
+  seriesIndex: number
+  seriesCount: number
+  stacked: boolean
+  valueToPx: (value: number) => number
+}) {
+  const slot = stacked ? bandwidth : bandwidth / Math.max(seriesCount, 1)
+  const y = stacked
+    ? center - bandwidth * 0.45
+    : center - bandwidth / 2 + seriesIndex * slot + slot * 0.08
+  const x0 = valueToPx(start)
+  const x1 = valueToPx(end)
+  return {
+    x: Math.min(x0, x1),
+    y,
+    width: Math.abs(x1 - x0),
+    height: stacked ? bandwidth * 0.9 : slot * 0.84,
+  }
+}
 
 /**
  * Per-series [y0, y1] bands for every row. For `default` every series sits on

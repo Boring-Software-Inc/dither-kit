@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest"
 import {
   buildBandScale,
+  buildValueScale,
   buildXScale,
   buildYScale,
   computeBands,
+  horizontalBarRect,
   indexAtBand,
   nearestIndex,
+  nearestPointIndex,
+  normalizeDomain,
+  normalizeRange,
 } from "../registry/dither-kit/scales"
 
 const rows = [
@@ -136,5 +141,79 @@ describe("x scales & hit-testing", () => {
     const band = buildBandScale(4, 100)
     expect(band.bandwidth()).toBeGreaterThan(0)
     expect(band(0)).not.toBeUndefined()
+  })
+})
+
+describe("numeric scales", () => {
+  it("maps an explicit numeric domain without adding padding", () => {
+    const x = buildValueScale([20, 40], 200, [0, 100])
+    expect(x(0)).toBe(0)
+    expect(x(50)).toBe(100)
+    expect(x(100)).toBe(200)
+  })
+
+  it("normalizes empty and equal-value domains", () => {
+    expect(normalizeDomain([])).toEqual([0, 1])
+    expect(normalizeDomain([5, 5])).toEqual([4.75, 5.25])
+  })
+})
+
+describe("scatter hit-testing", () => {
+  it("returns the closest two-dimensional point", () => {
+    const points = [
+      { x: 0, y: 0 },
+      { x: 90, y: 10 },
+      { x: 50, y: 80 },
+    ]
+    expect(nearestPointIndex(points, 48, 76)).toBe(2)
+  })
+})
+
+describe("range normalization", () => {
+  it("orders reversed endpoints and falls back to the value", () => {
+    expect(normalizeRange(0.8, 0.5, 0.2)).toEqual({
+      low: 0.2,
+      value: 0.5,
+      high: 0.8,
+    })
+    expect(normalizeRange(undefined, 0.5, Number.NaN)).toEqual({
+      low: 0.5,
+      value: 0.5,
+      high: 0.5,
+    })
+  })
+})
+
+describe("horizontal bar geometry", () => {
+  const valueToPx = (value: number) => value * 10
+
+  it("builds grouped rectangles in separate category slots", () => {
+    expect(
+      horizontalBarRect({
+        center: 50,
+        bandwidth: 40,
+        start: 0,
+        end: 8,
+        seriesIndex: 1,
+        seriesCount: 2,
+        stacked: false,
+        valueToPx,
+      })
+    ).toEqual({ x: 0, y: 51.6, width: 80, height: 16.8 })
+  })
+
+  it("keeps reversed stacked values positive", () => {
+    expect(
+      horizontalBarRect({
+        center: 50,
+        bandwidth: 40,
+        start: 8,
+        end: 3,
+        seriesIndex: 0,
+        seriesCount: 1,
+        stacked: true,
+        valueToPx,
+      })
+    ).toEqual({ x: 30, y: 32, width: 50, height: 36 })
   })
 })

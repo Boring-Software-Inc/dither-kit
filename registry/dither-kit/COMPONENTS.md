@@ -31,6 +31,8 @@ automatically. Register the namespace once in `components.json`:
 ```bash
 npx shadcn@latest add @dither-kit/area-chart    # area + line (+ Sparkline)
 npx shadcn@latest add @dither-kit/bar-chart
+npx shadcn@latest add @dither-kit/scatter-chart
+npx shadcn@latest add @dither-kit/range-chart
 npx shadcn@latest add @dither-kit/pie-chart
 npx shadcn@latest add @dither-kit/radar-chart
 npx shadcn@latest add @dither-kit/avatar        # standalone, no core
@@ -78,6 +80,27 @@ const config = {
 
 Swap `AreaChart` → `LineChart` / `BarChart` (and `Area` → `Line` /
 `Bar`) for the other cartesian types — same API.
+
+### Scatter / range
+
+```tsx
+<ScatterChart data={data} config={config} xKey="cost" xDomain={[0, maxCost]} yDomain={[0, 1]}>
+  <XAxis />
+  <YAxis />
+  <Tooltip labelKey="model" />
+  <Scatter dataKey="score" labelKey="model" />
+</ScatterChart>
+
+<RangeChart data={data} config={config} categoryKey="model" domain={[0, 1]}>
+  <XAxis />
+  <YAxis dataKey="model" />
+  <Tooltip labelKey="model" />
+  <Range dataKey="mean" lowKey="low" highKey="high" />
+</RangeChart>
+```
+
+Horizontal bars use `layout="horizontal"` with category labels on
+`<YAxis dataKey="model" />` and numeric ticks on `<XAxis />`.
 
 ### Pie / radar (polar)
 

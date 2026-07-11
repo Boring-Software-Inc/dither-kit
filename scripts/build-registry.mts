@@ -145,6 +145,28 @@ const ITEMS: ItemDef[] = [
     devDependencies: [],
   },
   {
+    name: "scatter-chart",
+    title: "Dither Scatter Chart",
+    description:
+      "Composable dithered scatter chart with numeric axes, point labels, nearest-point hover, selection, and colour bloom.",
+    categories: ["charts"],
+    files: ["scatter-chart.tsx", "scatter-canvas.tsx", "scatter.tsx"],
+    registryDependencies: [`${NS}/core`],
+    dependencies: [],
+    devDependencies: [],
+  },
+  {
+    name: "range-chart",
+    title: "Dither Range Chart",
+    description:
+      "Composable horizontal low/value/high range chart for confidence intervals and comparable estimates.",
+    categories: ["charts"],
+    files: ["range-chart.tsx", "range-canvas.tsx", "range.tsx"],
+    registryDependencies: [`${NS}/core`],
+    dependencies: [],
+    devDependencies: [],
+  },
+  {
     name: "pie-chart",
     title: "Dither Pie / Donut Chart",
     description:
@@ -205,7 +227,7 @@ const ITEMS: ItemDef[] = [
     name: "dither-kit",
     title: "Dither Kit — Everything",
     description:
-      "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine, plus generative dithered avatars, buttons, and gradient washes. Inspired by Evil Charts (evilcharts.com).",
+      "All of Dither Kit: area, line, bar, scatter, range, pie, and radar dithered charts on one tiny canvas engine, plus generative dithered avatars, buttons, and gradient washes. Inspired by Evil Charts (evilcharts.com).",
     categories: ["charts"],
     // The barrel only ships here — it re-exports every piece, so it is only
     // valid when everything is installed.
@@ -213,6 +235,8 @@ const ITEMS: ItemDef[] = [
     registryDependencies: [
       `${NS}/area-chart`,
       `${NS}/bar-chart`,
+      `${NS}/scatter-chart`,
+      `${NS}/range-chart`,
       `${NS}/pie-chart`,
       `${NS}/radar-chart`,
       `${NS}/avatar`,
@@ -231,7 +255,7 @@ function fileEntry(name: string) {
     path: `${TARGET_DIR}/${name}`,
     type: "registry:component",
     target: `${TARGET_DIR}/${name}`,
-    content: readFileSync(join(SRC, name), "utf8"),
+    content: readFileSync(join(SRC, name), "utf8").replace(/\r\n/g, "\n"),
   }
 }
 
