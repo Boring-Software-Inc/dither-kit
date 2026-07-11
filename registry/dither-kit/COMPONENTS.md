@@ -8,7 +8,7 @@ selection, colour bloom, and prop-driven entrance animations are all built in.
 The pack is **self-contained** (only `react`, `motion`, `d3-scale`, `d3-shape`,
 `clsx`, `tailwind-merge`) and ships as a shadcn registry.
 
-> **Huge thanks to [Evil Charts](https://www.evilcharts.com)** by
+> **Huge thanks to [Evil Charts](https://evilcharts.com)** by
 > [legions-developer](https://github.com/legions-developer/evilcharts) — the
 > original dithered, composable chart aesthetic that inspired all of this. Go
 > star it. ⭐

@@ -58,4 +58,4 @@ const config = { desktop: { label: "Desktop", color: "blue" } }
 
 ## Credit
 
-Heavily inspired by [Evil Charts](https://www.evilcharts.com) by [legions-developer](https://github.com/legions-developer) — the composable, dithered chart aesthetic that started this.
+Heavily inspired by [Evil Charts](https://evilcharts.com) by [legions-developer](https://github.com/legions-developer) — the composable, dithered chart aesthetic that started this.

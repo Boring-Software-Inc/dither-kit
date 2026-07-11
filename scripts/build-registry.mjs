@@ -12,7 +12,7 @@
 //   • r/<item>.json + r/registry.json — a host-agnostic namespace registry
 //     (content inlined) for anyone serving it under a "@dither-kit" namespace.
 //
-// Dither Kit is heavily inspired by Evil Charts (https://www.evilcharts.com,
+// Dither Kit is heavily inspired by Evil Charts (https://evilcharts.com,
 // https://github.com/legions-developer/evilcharts).
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
