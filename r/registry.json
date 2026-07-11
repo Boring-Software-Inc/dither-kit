@@ -1,0 +1,251 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "dither-kit",
+  "homepage": "https://tripwire.sh/dither-kit",
+  "items": [
+    {
+      "name": "core",
+      "type": "registry:component",
+      "title": "Dither Kit — Core",
+      "description": "Shared engine for Dither Kit: contexts, d3 scales, the ordered-dither canvas painter, the canvas-agnostic chart shells, and the legend/tooltip/grid/axes/dot chrome. Installed automatically by every chart.",
+      "dependencies": [
+        "motion",
+        "d3-scale",
+        "d3-shape",
+        "clsx",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "components/dither-kit/lib.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/lib.ts"
+        },
+        {
+          "path": "components/dither-kit/palette.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/palette.ts"
+        },
+        {
+          "path": "components/dither-kit/scales.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/scales.ts"
+        },
+        {
+          "path": "components/dither-kit/polar.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/polar.ts"
+        },
+        {
+          "path": "components/dither-kit/dither-paint.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/dither-paint.ts"
+        },
+        {
+          "path": "components/dither-kit/use-chart-dimensions.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/use-chart-dimensions.ts"
+        },
+        {
+          "path": "components/dither-kit/chart-context.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/chart-context.tsx"
+        },
+        {
+          "path": "components/dither-kit/common-context.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/common-context.tsx"
+        },
+        {
+          "path": "components/dither-kit/series-context.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/series-context.tsx"
+        },
+        {
+          "path": "components/dither-kit/polar-context.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/polar-context.tsx"
+        },
+        {
+          "path": "components/dither-kit/cartesian-root.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/cartesian-root.tsx"
+        },
+        {
+          "path": "components/dither-kit/polar-root.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/polar-root.tsx"
+        },
+        {
+          "path": "components/dither-kit/grid.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/grid.tsx"
+        },
+        {
+          "path": "components/dither-kit/x-axis.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/x-axis.tsx"
+        },
+        {
+          "path": "components/dither-kit/y-axis.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/y-axis.tsx"
+        },
+        {
+          "path": "components/dither-kit/dot.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/dot.tsx"
+        },
+        {
+          "path": "components/dither-kit/legend.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/legend.tsx"
+        },
+        {
+          "path": "components/dither-kit/tooltip.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/tooltip.tsx"
+        }
+      ]
+    },
+    {
+      "name": "area-chart",
+      "type": "registry:component",
+      "title": "Dither Area & Line Chart",
+      "description": "Composable dithered area + line charts — children-as-config API with the ordered-dither fill, winking sparkles, a gliding scrub tooltip, selection, and colour bloom. Includes Sparkline. Inspired by Evil Charts (evilcharts.com).",
+      "dependencies": [],
+      "registryDependencies": [
+        "@dither-kit/core"
+      ],
+      "files": [
+        {
+          "path": "components/dither-kit/area-chart.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/area-chart.tsx"
+        },
+        {
+          "path": "components/dither-kit/cartesian-canvas.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/cartesian-canvas.tsx"
+        },
+        {
+          "path": "components/dither-kit/area.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/area.tsx"
+        },
+        {
+          "path": "components/dither-kit/sparkline.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/sparkline.tsx"
+        }
+      ]
+    },
+    {
+      "name": "bar-chart",
+      "type": "registry:component",
+      "title": "Dither Bar Chart",
+      "description": "Composable dithered bar chart — grouped or stacked, with a staggered grow-in wave, the ordered-dither fill, scrub tooltip, selection, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
+      "dependencies": [],
+      "registryDependencies": [
+        "@dither-kit/core"
+      ],
+      "files": [
+        {
+          "path": "components/dither-kit/bar-chart.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/bar-chart.tsx"
+        },
+        {
+          "path": "components/dither-kit/bar-canvas.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/bar-canvas.tsx"
+        },
+        {
+          "path": "components/dither-kit/bar.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/bar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "pie-chart",
+      "type": "registry:component",
+      "title": "Dither Pie / Donut Chart",
+      "description": "Composable dithered pie / donut chart — per-pixel radial dither, clockwise sweep-in, slice hover-pop, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
+      "dependencies": [],
+      "registryDependencies": [
+        "@dither-kit/core"
+      ],
+      "files": [
+        {
+          "path": "components/dither-kit/pie-chart.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/pie-chart.tsx"
+        },
+        {
+          "path": "components/dither-kit/pie-canvas.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/pie-canvas.tsx"
+        },
+        {
+          "path": "components/dither-kit/pie.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/pie.tsx"
+        }
+      ]
+    },
+    {
+      "name": "radar-chart",
+      "type": "registry:component",
+      "title": "Dither Radar Chart",
+      "description": "Composable dithered radar chart — polygon-membership dither, scale-in entrance, vertex markers, the dither frame, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
+      "dependencies": [],
+      "registryDependencies": [
+        "@dither-kit/core"
+      ],
+      "files": [
+        {
+          "path": "components/dither-kit/radar-chart.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/radar-chart.tsx"
+        },
+        {
+          "path": "components/dither-kit/radar-canvas.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/radar-canvas.tsx"
+        },
+        {
+          "path": "components/dither-kit/radar.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/radar.tsx"
+        },
+        {
+          "path": "components/dither-kit/radar-frame.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/radar-frame.tsx"
+        }
+      ]
+    },
+    {
+      "name": "dither-kit",
+      "type": "registry:component",
+      "title": "Dither Kit — Everything",
+      "description": "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine. Inspired by Evil Charts (evilcharts.com).",
+      "dependencies": [],
+      "registryDependencies": [
+        "@dither-kit/area-chart",
+        "@dither-kit/bar-chart",
+        "@dither-kit/pie-chart",
+        "@dither-kit/radar-chart"
+      ],
+      "files": [
+        {
+          "path": "components/dither-kit/index.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/index.ts"
+        }
+      ]
+    }
+  ]
+}

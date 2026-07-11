@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "dither-kit",
+  "type": "registry:component",
+  "title": "Dither Kit — Everything",
+  "description": "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine. Inspired by Evil Charts (evilcharts.com).",
+  "author": "ripgrim",
+  "dependencies": [],
+  "devDependencies": [],
+  "registryDependencies": [
+    "@dither-kit/area-chart",
+    "@dither-kit/bar-chart",
+    "@dither-kit/pie-chart",
+    "@dither-kit/radar-chart"
+  ],
+  "files": [
+    {
+      "path": "components/dither-kit/index.ts",
+      "type": "registry:component",
+      "target": "components/dither-kit/index.ts",
+      "content": "export { Area, type AreaProps, Line, type SeriesProps } from \"./area\"\nexport { AreaChart, type AreaChartProps, LineChart } from \"./area-chart\"\nexport { Bar, type BarProps } from \"./bar\"\nexport { BarChart } from \"./bar-chart\"\nexport type { CartesianChartProps } from \"./cartesian-root\"\nexport type {\n  AreaVariant,\n  ChartConfig,\n  ChartType,\n  Margins,\n  SeriesKind,\n  StrokeVariant,\n} from \"./chart-context\"\nexport type {\n  BloomBlend,\n  BloomConfig,\n  BloomInput,\n  BloomLevel,\n} from \"./dither-paint\"\nexport { ActiveDot, Dot, type DotVariant } from \"./dot\"\nexport { Grid } from \"./grid\"\nexport { Legend } from \"./legend\"\nexport type { DitherColor } from \"./palette\"\nexport { Pie, type PieProps } from \"./pie\"\nexport { PieChart, type PieChartProps } from \"./pie-chart\"\nexport { Radar, type RadarProps } from \"./radar\"\nexport { RadarChart, type RadarChartProps } from \"./radar-chart\"\nexport type { StackType } from \"./scales\"\nexport { Sparkline, type SparklineProps } from \"./sparkline\"\nexport { Tooltip, type TooltipVariant } from \"./tooltip\"\nexport { XAxis } from \"./x-axis\"\nexport { YAxis } from \"./y-axis\"\n"
+    }
+  ]
+}

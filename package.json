@@ -1,0 +1,16 @@
+{
+  "name": "dither-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Composable, dithered charts for shadcn/ui — area, line, bar, pie & radar on a tiny ordered-dither canvas engine.",
+  "homepage": "https://tripwire.sh/dither-kit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Boring-Software-Inc/dither-kit.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-registry.mjs"
+  }
+}
