@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { Area } from "./area"
 import { AreaChart } from "./area-chart"
 import type { AreaVariant } from "./chart-context"
@@ -40,9 +41,11 @@ export function Sparkline({
   animate = false,
   className,
 }: SparklineProps) {
-  // React Compiler memoizes these against `data` / `color`.
-  const rows = data.map((v) => ({ v }))
-  const config = { v: { color } }
+  // Memoized explicitly so the chart works without React Compiler: `rows`
+  // identity drives the entrance-replay revision, so a fresh array every
+  // render would re-trigger the revision's state adjustment each pass.
+  const rows = useMemo(() => data.map((v) => ({ v })), [data])
+  const config = useMemo(() => ({ v: { color } }), [color])
 
   return (
     <AreaChart
