@@ -14,6 +14,7 @@ import {
   indexAtBand,
   nearestIndex,
   type StackType,
+  type YDomain,
 } from "./scales"
 import type { Dimensions } from "./use-chart-dimensions"
 
@@ -181,6 +182,7 @@ export function useChartController({
   data,
   config,
   stackType,
+  yDomain = "zero",
   dimensions,
   margins,
   animate = true,
@@ -197,6 +199,7 @@ export function useChartController({
   data: Row[]
   config: ChartConfig
   stackType: StackType
+  yDomain?: YDomain
   dimensions: Dimensions
   margins: Margins
   animate?: boolean
@@ -292,12 +295,22 @@ export function useChartController({
     [revision]
   )
 
+  // Normalize the domain to primitive deps so a host passing a fresh tuple
+  // literal each render can't bust the band/scale memos below.
+  const domainMode = Array.isArray(yDomain) ? null : (yDomain as "zero" | "auto")
+  const domainLo = Array.isArray(yDomain) ? yDomain[0] : null
+  const domainHi = Array.isArray(yDomain) ? yDomain[1] : null
+  const domain = useMemo<YDomain>(
+    () => domainMode ?? ([domainLo as number, domainHi as number] as const),
+    [domainMode, domainLo, domainHi]
+  )
+
   // Memoized: the priciest derivation in the render path — it walks every
   // row × series to build the stack bands. Hover/cursor state changes must not
-  // recompute it, only a real data/series/stack change.
-  const { bands, max } = useMemo(
-    () => computeBands(data, configKeys, stackType),
-    [data, configKeys, stackType]
+  // recompute it, only a real data/series/stack/domain change.
+  const { bands, max, min } = useMemo(
+    () => computeBands(data, configKeys, stackType, domain),
+    [data, configKeys, stackType, domain]
   )
 
   const isBar = chartType === "bar"
@@ -341,7 +354,10 @@ export function useChartController({
     },
     [xCenter, stacked, bandwidth]
   )
-  const y = useMemo(() => buildYScale(max, plotHeight), [max, plotHeight])
+  const y = useMemo(
+    () => buildYScale(max, plotHeight, min, domain === "zero"),
+    [max, plotHeight, min, domain]
+  )
 
   // Stable so `common` and the value stay stable; re-created only on config.
   const seedOf = useCallback(
