@@ -15,7 +15,7 @@
       "path": "components/dither-kit/bar-chart.tsx",
       "type": "registry:component",
       "target": "components/dither-kit/bar-chart.tsx",
-      "content": "\"use client\"\n\nimport { BarCanvas } from \"./bar-canvas\"\nimport { type CartesianChartProps, CartesianRoot } from \"./cartesian-root\"\n\ntype Row = Record<string, unknown>\n\n/** Composable dither **bar** chart — `<Bar>` series, grouped or stacked. */\nexport function BarChart<TData extends Row>(props: CartesianChartProps<TData>) {\n  return <CartesianRoot chartType=\"bar\" Canvas={BarCanvas} {...props} />\n}\n"
+      "content": "\"use client\"\n\nimport { BarCanvas } from \"./bar-canvas\"\nimport { type CartesianChartProps, CartesianRoot } from \"./cartesian-root\"\n\n// `object` rather than `Record<string, unknown>`: interfaces don't get an\n// implicit index signature, so interface-typed rows failed to satisfy the\n// generic. Internal layers still index rows through their own Row type.\ntype Row = object\n\n/** Composable dither **bar** chart — `<Bar>` series, grouped or stacked. */\nexport function BarChart<TData extends Row>(props: CartesianChartProps<TData>) {\n  return <CartesianRoot chartType=\"bar\" Canvas={BarCanvas} {...props} />\n}\n"
     },
     {
       "path": "components/dither-kit/bar-canvas.tsx",
