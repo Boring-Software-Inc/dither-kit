@@ -14,8 +14,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build:core && npm run build:registry && npm run build:cli",
-    "build:core": "npm run build -w @dither-kit/registry-core",
+    "build": "npm run build:registry && npm run build:cli",
     "build:cli": "npm run build -w @dither-kit/cli",
     "build:registry": "tsx scripts/build-registry.mts",
     "test": "vitest run && npm run test:cli",
