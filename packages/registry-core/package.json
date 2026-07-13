@@ -1,7 +1,8 @@
 {
   "name": "@dither-kit/registry-core",
   "version": "0.1.0",
-  "description": "Shared schema for the Dither Kit registry: the single source of truth for the registry-item shape and the CLI lockfile, as zod schemas with inferred types.",
+  "private": true,
+  "description": "Shared schema for the Dither Kit registry: the single source of truth for the registry-item shape and the CLI lockfile, as zod schemas with inferred types. Bundled into @dither-kit/cli; not published on its own.",
   "homepage": "https://tripwire.sh/dither-kit",
   "repository": {
     "type": "git",

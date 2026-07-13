@@ -27,12 +27,36 @@ transitively with zero `components.json` registry configuration.
    CDN works; the files are immutable per release and safe to cache. Suggested
    headers:
    - `Content-Type: application/json`
-   - `Cache-Control: public, max-age=300` (the CLI also caches locally with a
-     1-hour TTL and a stale-while-offline fallback, so a short edge TTL is fine).
+   - `Cache-Control: public, max-age=300, stale-while-revalidate=86400` — see
+     the staleness note below for why this number and not a longer one.
    - `Access-Control-Allow-Origin: *` (so browser-based tooling can read it too).
+   - Serve an `ETag` (most static hosts do); the CLI doesn't send conditional
+     requests today, but browsers and CDNs benefit.
 2. Regenerate on every change: `npm run build:registry` writes `r/` and the
    repo-root `registry.json`. CI should run this and fail if `r/` is dirty
    afterward (guarantees rule #1 in `AGENTS.md`).
+
+### Staleness: how long until a new component shows up in `list`?
+
+Total visibility delay = **edge cache TTL + the CLI's local cache TTL**. The CLI
+caches `registry.json` in the user's XDG cache dir for **1 hour**
+(`DEFAULT_TTL_MS` in `packages/cli/src/registry.js`) with a stale-while-offline
+fallback. So the *local* cache already bounds worst case at ~1 hour for a machine
+that has run the CLI before; a fresh machine sees new components immediately.
+
+Given that, keep the edge TTL short so it doesn't stack a second delay on top:
+
+- **`r/registry.json`** (the index `list` reads): `max-age=300`. A longer edge
+  TTL means a newly-added component could take *edge-TTL + 1h* to appear — a
+  1-day edge cache is exactly the "takes a day to show up" problem to avoid.
+- **`r/<name>.json`** (per-item, content changes on component updates): same
+  `max-age=300`. These aren't immutable — `update`/`diff` rely on them being
+  current — so don't cache them for hours either.
+- `stale-while-revalidate` lets the CDN serve instantly while refreshing in the
+  background, so a short `max-age` costs no latency.
+
+If you ever want new components to appear faster than ~1 hour, lower
+`DEFAULT_TTL_MS` in the CLI — the edge TTL alone can't beat the local cache.
 
 ## 302s from the old raw URLs (planned)
 
