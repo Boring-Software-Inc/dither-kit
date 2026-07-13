@@ -200,6 +200,17 @@ const ITEMS: ItemDef[] = [
     devDependencies: [],
   },
   {
+    name: "icon",
+    title: "Dither Icon",
+    description:
+      "SVG-to-dither compiler - takes any SVG icon component, rasterizes it and re-emits it through the ordered-dither texture, with the Bayer materialize entrance and a controlled progress for scroll-linked reveals. Standalone: installs without the chart engine.",
+    categories: ["icons"],
+    files: ["icon.tsx", "pixel.ts", "palette.ts", "lib.ts"],
+    registryDependencies: [],
+    dependencies: ["clsx", "tailwind-merge"],
+    devDependencies: [],
+  },
+  {
     name: "dither-kit",
     title: "Dither Kit — Everything",
     description:
@@ -216,6 +227,7 @@ const ITEMS: ItemDef[] = [
       `${NS}/avatar`,
       `${NS}/button`,
       `${NS}/gradient`,
+      `${NS}/icon`,
     ],
     dependencies: [],
     devDependencies: [],

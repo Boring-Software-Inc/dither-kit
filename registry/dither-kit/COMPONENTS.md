@@ -36,6 +36,7 @@ npx shadcn@latest add @dither-kit/radar-chart
 npx shadcn@latest add @dither-kit/avatar        # standalone, no core
 npx shadcn@latest add @dither-kit/button        # standalone, no core
 npx shadcn@latest add @dither-kit/gradient      # standalone, no core
+npx shadcn@latest add @dither-kit/icon          # standalone, no core
 npx shadcn@latest add @dither-kit/dither-kit    # everything at once
 ```
 
@@ -126,6 +127,24 @@ None of these pull in the chart engine — they share only the pixel primitives
 </footer>
 <DitherGradient from={280} to="blue" direction="right" />  // two-tone blend
 ```
+
+### Icon (SVG-to-dither compiler, standalone)
+
+```tsx
+import { Wallet } from "lucide-react"
+
+// Takes any SVG icon component, rasterizes it at cell resolution, reads the
+// alpha channel, and re-emits it through the ordered-dither texture with the
+// Bayer materialize entrance.
+<DitherIcon icon={Wallet} color="blue" size={40} />
+<DitherIcon icon={Wallet} size={40} cell={2} strokeWidth={2.5} />  // chunky pixel-art
+
+// Controlled reveal for scroll-linked entrances - overrides `animate`.
+<DitherIcon icon={Wallet} progress={scrollProgress} />
+```
+
+Decorative by default (`ariaLabel={null}` renders aria-hidden); pass a
+string `ariaLabel` for `role="img"` semantics.
 
 ## Props worth knowing
 
