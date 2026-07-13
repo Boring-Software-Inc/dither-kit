@@ -1,7 +1,7 @@
 "use client"
 
 import type { ScaleLinear } from "d3-scale"
-import { createContext, use, useState } from "react"
+import { createContext, use, useCallback, useState } from "react"
 import type { CommonChart } from "./common-context"
 import type { BloomInput } from "./dither-paint"
 import type { DitherColor, Seed } from "./palette"
@@ -209,7 +209,8 @@ export function useChartController({
   onSelectionChange?: (key: string | null) => void
 }): ChartContextValue {
   // React Compiler memoizes every render-scope value below — no manual
-  // useMemo/useCallback wrappers needed.
+  // useMemo/useCallback wrappers needed, except the register/unregister
+  // callbacks (see note there), which must stay stable without the compiler.
   const configKeys = Object.keys(config)
   const revision = useRevision(data, replayToken)
 
@@ -222,7 +223,11 @@ export function useChartController({
   const [isMouseInChart, setMouseInChart] = useState(false)
   const [seriesSpecs, setSeriesSpecs] = useState<Record<string, SeriesSpec>>({})
 
-  const registerSeries = (spec: SeriesSpec) => {
+  // useCallback (not compiler memoization) because the series effects in
+  // area.tsx/bar.tsx list these as deps — without stable identities, setups
+  // that don't run React Compiler re-fire the effect every render and the
+  // unregister/register setState pair loops ("Maximum update depth exceeded").
+  const registerSeries = useCallback((spec: SeriesSpec) => {
     setSeriesSpecs((prev) => {
       const cur = prev[spec.dataKey]
       return cur &&
@@ -232,15 +237,15 @@ export function useChartController({
         ? prev
         : { ...prev, [spec.dataKey]: spec }
     })
-  }
-  const unregisterSeries = (dataKey: string) => {
+  }, [])
+  const unregisterSeries = useCallback((dataKey: string) => {
     setSeriesSpecs((prev) => {
       if (!(dataKey in prev)) return prev
       const next = { ...prev }
       delete next[dataKey]
       return next
     })
-  }
+  }, [])
 
   const selectDataKey = (key: string | null) => {
     setSelectedDataKey(key)
