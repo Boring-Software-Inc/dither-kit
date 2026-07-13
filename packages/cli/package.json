@@ -36,7 +36,7 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test test/*.test.ts",
-    "prepublishOnly": "npm run build --prefix ../registry-core && npm run build"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",
