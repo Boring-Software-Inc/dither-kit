@@ -5,7 +5,7 @@ import { createContext, use, useCallback, useMemo, useState } from "react"
 import type { CommonChart } from "./common-context"
 import type { BloomInput } from "./dither-paint"
 import type { DitherColor, Seed } from "./palette"
-import { seedOfColor } from "./palette"
+import { isDitherColor, seedOfColor } from "./palette"
 import {
   buildBandScale,
   buildXScale,
@@ -20,7 +20,13 @@ import type { Dimensions } from "./use-chart-dimensions"
 /** Which chart root a part is composed under — drives the boundary guards. */
 export type ChartType = "area" | "bar" | "line" | "pie" | "radar"
 
-export type ChartConfig = Record<string, { label?: string; color: DitherColor }>
+// `color` accepts a named palette color OR a custom Seed, so brands can
+// supply their own hues (fill/line/star triplets) without forking the
+// palette. Named colors stay the ergonomic default.
+export type ChartConfig = Record<
+  string,
+  { label?: string; color: DitherColor | Seed }
+>
 
 export type Margins = {
   top: number
@@ -345,7 +351,11 @@ export function useChartController({
 
   // Stable so `common` and the value stay stable; re-created only on config.
   const seedOf = useCallback(
-    (key: string) => seedOfColor(config[key]?.color ?? "grey"),
+    (key: string) => {
+      const color = config[key]?.color
+      if (color == null) return seedOfColor("grey")
+      return isDitherColor(color) ? seedOfColor(color) : color
+    },
     [config]
   )
 

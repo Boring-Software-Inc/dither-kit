@@ -11,7 +11,7 @@ import {
 import type { CommonChart } from "./common-context"
 import type { BloomInput } from "./dither-paint"
 import type { Seed } from "./palette"
-import { seedOfColor } from "./palette"
+import { isDitherColor, seedOfColor } from "./palette"
 import { type PieSlice, pieSlices, type RadarAxis, radarAxes } from "./polar"
 import type { Dimensions } from "./use-chart-dimensions"
 
@@ -192,7 +192,11 @@ export function usePolarController({
 
   // Stable so `common` and the value stay stable; re-created only on config.
   const seedOf = useCallback(
-    (key: string) => seedOfColor(config[key]?.color ?? "grey"),
+    (key: string) => {
+      const color = config[key]?.color
+      if (color == null) return seedOfColor("grey")
+      return isDitherColor(color) ? seedOfColor(color) : color
+    },
     [config]
   )
   // "*" is the pie-wide variant set by <Pie>; radar registers per series key.
