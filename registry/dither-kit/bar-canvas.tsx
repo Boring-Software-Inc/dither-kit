@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { useChart } from "./chart-context"
 import {
   backingSize,
@@ -31,26 +31,30 @@ export function BarCanvas() {
 
   const { width, height } = ctx.plot
   const { cols, rows } = backingSize(width, height)
+  const { ready, configKeys, bands, y } = ctx
 
-  // Per-series target bar tops/bases (backing rows) over the data indices.
-  // React Compiler memoizes this against the exact ctx fields it reads.
-  const targets = (() => {
+  // Memoized: per-series bar tops/bases (backing rows) over the data indices.
+  // The canvas re-renders on every hover/cursor tick, so pin this map to the
+  // exact ctx fields it reads plus the backing geometry — a bar hover must not
+  // rebuild every band's geometry.
+  const targets = useMemo(() => {
     const out: Record<string, Bars> = {}
-    if (!ctx.ready) return out
+    if (!ready) return out
     const h = height || 1
-    for (const key of ctx.configKeys) {
-      const band = ctx.bands[key]
+    for (const key of configKeys) {
+      const band = bands[key]
       if (!band) continue
       out[key] = {
-        top: band.map((b) => (ctx.y(b[1]) / h) * (rows - 1)),
-        base: band.map((b) => (ctx.y(b[0]) / h) * (rows - 1)),
+        top: band.map((b) => (y(b[1]) / h) * (rows - 1)),
+        base: band.map((b) => (y(b[0]) / h) * (rows - 1)),
       }
     }
     return out
-  })()
+  }, [ready, configKeys, bands, y, height, rows])
 
   // The RAF loop reads these through refs so it always sees the latest values;
-  // refs are written in an effect (never during render) for the compiler.
+  // refs are written in an effect (never during render) — mutating a ref
+  // mid-render tears under Strict Mode / concurrent rendering.
   const state = useRef(ctx)
   const targetsRef = useRef(targets)
   useEffect(() => {

@@ -33,7 +33,8 @@ export function PieCanvas() {
   const { cols, rows } = backingSize(width, height)
 
   // The RAF loop reads the latest ctx through a ref; written in an effect
-  // (never during render) for the compiler.
+  // (never during render) — mutating a ref mid-render tears under Strict Mode /
+  // concurrent rendering.
   const state = useRef(ctx)
   useEffect(() => {
     state.current = ctx

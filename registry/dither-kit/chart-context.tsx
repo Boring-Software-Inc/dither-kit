@@ -1,7 +1,7 @@
 "use client"
 
 import type { ScaleLinear } from "d3-scale"
-import { createContext, use, useCallback, useState } from "react"
+import { createContext, use, useCallback, useMemo, useState } from "react"
 import type { CommonChart } from "./common-context"
 import type { BloomInput } from "./dither-paint"
 import type { DitherColor, Seed } from "./palette"
@@ -158,8 +158,9 @@ export { ChartContext }
 
 /** A counter that advances whenever `data` changes identity or `token` advances
  * — drives entrance replays without remounting. Uses the adjust-state-during-
- * render pattern (https://react.dev/reference/react/useState) instead of refs,
- * so React Compiler can reason about it. */
+ * render pattern (https://react.dev/reference/react/useState) instead of a ref:
+ * the revision is derived purely from render inputs, so it stays consistent
+ * across the memoized values below rather than lagging a render behind. */
 export function useRevision(data: unknown, token: number) {
   const [prev, setPrev] = useState({ data, token, revision: 0 })
   if (prev.data !== data || prev.token !== token) {
@@ -208,10 +209,17 @@ export function useChartController({
   defaultSelectedDataKey?: string | null
   onSelectionChange?: (key: string | null) => void
 }): ChartContextValue {
-  // React Compiler memoizes every render-scope value below — no manual
-  // useMemo/useCallback wrappers needed, except the register/unregister
-  // callbacks (see note there), which must stay stable without the compiler.
-  const configKeys = Object.keys(config)
+  // This object becomes the ChartContext value, so its identity — and the
+  // identity of every function/object it carries — must stay stable across
+  // renders that don't change the underlying inputs. Otherwise every consumer
+  // (axes, legend, tooltip, dots) re-renders on every parent render. So the
+  // expensive derivations, the exposed callbacks, and the returned value are
+  // memoized below; only cheap scalars (bandwidth, ready, plot sizes) are left
+  // bare, since they're just recomputed reads, not identities anyone depends on.
+
+  // Memoized: configKeys is the dep that drives `bands`, `common` and the
+  // canvas `targets` memo — a fresh array each render would bust all of them.
+  const configKeys = useMemo(() => Object.keys(config), [config])
   const revision = useRevision(data, replayToken)
 
   const [selectedDataKey, setSelectedDataKey] = useState<string | null>(
@@ -223,10 +231,9 @@ export function useChartController({
   const [isMouseInChart, setMouseInChart] = useState(false)
   const [seriesSpecs, setSeriesSpecs] = useState<Record<string, SeriesSpec>>({})
 
-  // useCallback (not compiler memoization) because the series effects in
-  // area.tsx/bar.tsx list these as deps — without stable identities, setups
-  // that don't run React Compiler re-fire the effect every render and the
-  // unregister/register setState pair loops ("Maximum update depth exceeded").
+  // useCallback because the series effects in area.tsx/bar.tsx list these as
+  // deps — without stable identities the unregister/register effect re-fires
+  // every render and its setState pair loops ("Maximum update depth exceeded").
   const registerSeries = useCallback((spec: SeriesSpec) => {
     setSeriesSpecs((prev) => {
       const cur = prev[spec.dataKey]
@@ -247,16 +254,27 @@ export function useChartController({
     })
   }, [])
 
-  const selectDataKey = (key: string | null) => {
-    setSelectedDataKey(key)
-    onSelectionChange?.(key)
-  }
-
-  const plotWidth = Math.max(0, dimensions.width - margins.left - margins.right)
-  const plotHeight = Math.max(
-    0,
-    dimensions.height - margins.top - margins.bottom
+  // Stable so the memoized value keeps its identity; only re-created when the
+  // caller's selection handler does.
+  const selectDataKey = useCallback(
+    (key: string | null) => {
+      setSelectedDataKey(key)
+      onSelectionChange?.(key)
+    },
+    [onSelectionChange]
   )
+
+  // The root spreads `{ ...DEFAULT_MARGINS, ...marginsProp }` fresh every
+  // render, so `margins` never keeps its identity. Pin one off the four numbers
+  // so it doesn't, on its own, invalidate the value or the plot geometry.
+  const { top: mTop, right: mRight, bottom: mBottom, left: mLeft } = margins
+  const stableMargins = useMemo(
+    () => ({ top: mTop, right: mRight, bottom: mBottom, left: mLeft }),
+    [mTop, mRight, mBottom, mLeft]
+  )
+
+  const plotWidth = Math.max(0, dimensions.width - mLeft - mRight)
+  const plotHeight = Math.max(0, dimensions.height - mTop - mBottom)
   const ready = plotWidth > 0 && plotHeight > 0
 
   // The entrance gate flips true when the canvas reveal completes (via
@@ -268,38 +286,72 @@ export function useChartController({
     setEntrance({ revision, done: !animate })
   }
   const entranceDone = entrance.revision === revision ? entrance.done : !animate
-  const markEntranceDone = () => setEntrance({ revision, done: true })
+  // Stable across renders at the same revision; the canvas holds this in a ref.
+  const markEntranceDone = useCallback(
+    () => setEntrance({ revision, done: true }),
+    [revision]
+  )
 
-  const { bands, max } = computeBands(data, configKeys, stackType)
+  // Memoized: the priciest derivation in the render path — it walks every
+  // row × series to build the stack bands. Hover/cursor state changes must not
+  // recompute it, only a real data/series/stack change.
+  const { bands, max } = useMemo(
+    () => computeBands(data, configKeys, stackType),
+    [data, configKeys, stackType]
+  )
 
   const isBar = chartType === "bar"
-  const xPoint = buildXScale(data.length, plotWidth)
-  const xBand = buildBandScale(data.length, plotWidth)
+  // The d3 scale factories are memoized so `y` keeps a stable identity: the
+  // canvas `targets` memo (cartesian-canvas / bar-canvas) deps on ctx.y, and
+  // xCenter/indexAtX/barSlot below close over these.
+  const xPoint = useMemo(
+    () => buildXScale(data.length, plotWidth),
+    [data.length, plotWidth]
+  )
+  const xBand = useMemo(
+    () => buildBandScale(data.length, plotWidth),
+    [data.length, plotWidth]
+  )
   const bandwidth = isBar ? xBand.bandwidth() : 0
-  const xCenter = (i: number) =>
-    isBar ? (xBand(i) ?? 0) + xBand.bandwidth() / 2 : (xPoint(i) ?? 0)
-  const indexAtX = (px: number) =>
-    isBar
-      ? indexAtBand(px, data.length, plotWidth)
-      : nearestIndex(px, data.length, plotWidth)
+  const xCenter = useCallback(
+    (i: number) =>
+      isBar ? (xBand(i) ?? 0) + xBand.bandwidth() / 2 : (xPoint(i) ?? 0),
+    [isBar, xBand, xPoint]
+  )
+  const indexAtX = useCallback(
+    (px: number) =>
+      isBar
+        ? indexAtBand(px, data.length, plotWidth)
+        : nearestIndex(px, data.length, plotWidth),
+    [isBar, data.length, plotWidth]
+  )
   const stacked = stackType === "stacked" || stackType === "percent"
-  const barSlot = (i: number, si: number, n: number) => {
-    const center = xCenter(i)
-    if (stacked) {
-      const w = bandwidth * 0.9
-      return { x: center - w / 2, width: w }
-    }
-    const slot = bandwidth / Math.max(n, 1)
-    return {
-      x: center - bandwidth / 2 + si * slot + slot * 0.08,
-      width: slot * 0.84,
-    }
-  }
-  const y = buildYScale(max, plotHeight)
+  const barSlot = useCallback(
+    (i: number, si: number, n: number) => {
+      const center = xCenter(i)
+      if (stacked) {
+        const w = bandwidth * 0.9
+        return { x: center - w / 2, width: w }
+      }
+      const slot = bandwidth / Math.max(n, 1)
+      return {
+        x: center - bandwidth / 2 + si * slot + slot * 0.08,
+        width: slot * 0.84,
+      }
+    },
+    [xCenter, stacked, bandwidth]
+  )
+  const y = useMemo(() => buildYScale(max, plotHeight), [max, plotHeight])
 
-  const seedOf = (key: string) => seedOfColor(config[key]?.color ?? "grey")
+  // Stable so `common` and the value stay stable; re-created only on config.
+  const seedOf = useCallback(
+    (key: string) => seedOfColor(config[key]?.color ?? "grey"),
+    [config]
+  )
 
-  const common: CommonChart = {
+  // Memoized: this is the value handed to CommonChartContext (Legend/Tooltip),
+  // so it needs its own stable identity independent of the parent value.
+  const common: CommonChart = useMemo(() => ({
     names: configKeys,
     labelOf: (n) => config[n]?.label ?? n,
     seedOf,
@@ -309,11 +361,11 @@ export function useChartController({
     setFocusDataKey,
     hoverIndex,
     ready,
-    tooltipLeft: Math.max(48, Math.min(plotWidth + margins.left - 48, cursorX)),
+    tooltipLeft: Math.max(48, Math.min(plotWidth + mLeft - 48, cursorX)),
     // Follow the highest hovered node so the card rides the data path, but
     // keep enough headroom that the upward-lifted card never clips the top.
     tooltipTop: (() => {
-      const floor = margins.top + 44
+      const floor = mTop + 44
       if (hoverIndex == null) return floor
       let minY = Number.POSITIVE_INFINITY
       for (const key of configKeys) {
@@ -321,7 +373,7 @@ export function useChartController({
         if (b) minY = Math.min(minY, y(b[1]))
       }
       if (!Number.isFinite(minY)) return floor
-      return Math.max(floor, margins.top + minY)
+      return Math.max(floor, mTop + minY)
     })(),
     heading: (i, labelKey) =>
       labelKey ? String(data[i]?.[labelKey] ?? "") : null,
@@ -339,48 +391,114 @@ export function useChartController({
           })(),
         }
       }),
-  }
-
-  return {
-    chartType,
-    config,
+  }), [
     configKeys,
-    data,
-    dataLength: data.length,
-    stackType,
-    margins,
-    plot: { width: plotWidth, height: plotHeight },
-    ready,
-    xCenter,
-    bandwidth,
-    indexAtX,
-    barSlot,
-    y,
-    bands,
-    max,
+    config,
+    seedOf,
     selectedDataKey,
     selectDataKey,
     focusDataKey,
     setFocusDataKey,
     hoverIndex,
-    setHoverIndex,
-    markerIndex,
+    ready,
+    plotWidth,
+    mLeft,
+    mTop,
     cursorX,
-    setCursorX,
-    isMouseInChart,
-    setMouseInChart,
-    hovered,
-    bloom,
-    bloomOnHover,
-    seriesSpecs,
-    registerSeries,
-    unregisterSeries,
-    animate,
-    animationDuration,
-    revision,
-    entranceDone,
-    markEntranceDone,
-    seedOf,
-    common,
-  }
+    bands,
+    y,
+    data,
+  ])
+
+  // Memoized: this is the ChartContext value. A fresh object here would
+  // re-render every consumer on every parent render — the whole reason the
+  // pieces above are stabilized. Rebuilds only when a listed input changes
+  // (which is exactly when a consumer needs the update). The useState setters
+  // are listed but never change identity, so they never trigger a rebuild.
+  return useMemo<ChartContextValue>(
+    () => ({
+      chartType,
+      config,
+      configKeys,
+      data,
+      dataLength: data.length,
+      stackType,
+      margins: stableMargins,
+      plot: { width: plotWidth, height: plotHeight },
+      ready,
+      xCenter,
+      bandwidth,
+      indexAtX,
+      barSlot,
+      y,
+      bands,
+      max,
+      selectedDataKey,
+      selectDataKey,
+      focusDataKey,
+      setFocusDataKey,
+      hoverIndex,
+      setHoverIndex,
+      markerIndex,
+      cursorX,
+      setCursorX,
+      isMouseInChart,
+      setMouseInChart,
+      hovered,
+      bloom,
+      bloomOnHover,
+      seriesSpecs,
+      registerSeries,
+      unregisterSeries,
+      animate,
+      animationDuration,
+      revision,
+      entranceDone,
+      markEntranceDone,
+      seedOf,
+      common,
+    }),
+    [
+      chartType,
+      config,
+      configKeys,
+      data,
+      stackType,
+      stableMargins,
+      plotWidth,
+      plotHeight,
+      ready,
+      xCenter,
+      bandwidth,
+      indexAtX,
+      barSlot,
+      y,
+      bands,
+      max,
+      selectedDataKey,
+      selectDataKey,
+      focusDataKey,
+      setFocusDataKey,
+      hoverIndex,
+      setHoverIndex,
+      markerIndex,
+      cursorX,
+      setCursorX,
+      isMouseInChart,
+      setMouseInChart,
+      hovered,
+      bloom,
+      bloomOnHover,
+      seriesSpecs,
+      registerSeries,
+      unregisterSeries,
+      animate,
+      animationDuration,
+      revision,
+      entranceDone,
+      markEntranceDone,
+      seedOf,
+      common,
+    ]
+  )
 }
