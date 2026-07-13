@@ -18,7 +18,8 @@
     "build:core": "npm run build -w @dither-kit/registry-core",
     "build:cli": "npm run build -w @dither-kit/cli",
     "build:registry": "tsx scripts/build-registry.mts",
-    "test": "vitest run && npm run test -w @dither-kit/cli"
+    "test": "vitest run && npm run test:cli",
+    "test:cli": "node --import tsx --test packages/cli/test/*.test.ts"
   },
   "devDependencies": {
     "@testing-library/react": "^16.1.0",
