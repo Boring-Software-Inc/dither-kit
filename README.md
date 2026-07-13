@@ -20,6 +20,8 @@ Available items:
 | `bar-chart` | grouped / stacked bars |
 | `pie-chart` | pie / donut |
 | `radar-chart` | radar |
+| `avatar` | generative mirrored pixel avatars (standalone, no chart engine) |
+| `gradient` | dithered gradient washes for backgrounds (standalone) |
 | `core` | shared engine (installed automatically) |
 | `dither-kit` | everything at once |
 
@@ -48,6 +50,30 @@ const config = { desktop: { label: "Desktop", color: "blue" } }
 
 - `variant`: `gradient` | `dotted` | `hatched` | `solid`
 - `bloom`: `off` | `low` | `high` | `aura`
+
+### Avatars & gradients
+
+Both are standalone — they install without the chart engine:
+
+```tsx
+import { DitherAvatar } from "@/components/dither-kit/avatar"
+import { DitherGradient } from "@/components/dither-kit/gradient"
+
+// deterministic from the name — ~1.5 trillion combinations across the
+// mirrored pattern, mirror axis (left/right or top/bottom), and hue
+<DitherAvatar name="dan" size={64} />
+<DitherAvatar name="dan" hue={210} size={64} />   // hue override, 0–360
+
+// dithered wash that fills its nearest relative ancestor
+<footer className="relative">
+  <DitherGradient from="purple" direction="up" />
+  <p className="relative">…</p>
+</footer>
+```
+
+- avatar `mirror`: `auto` | `horizontal` | `vertical` (auto picks per name)
+- gradient `to`: a colour for a two-tone dither blend, or `"transparent"` (default)
+- gradient `direction`: `up` | `down` | `left` | `right`; `cell` sets chunkiness
 
 ## Repo layout
 
