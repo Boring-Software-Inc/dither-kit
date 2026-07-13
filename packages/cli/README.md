@@ -126,9 +126,30 @@ cache) · `4` no `components.json` · `5` missing input under `--no-input` · `6
 
 ## Analytics
 
-The CLI sends **nothing** — no telemetry, no phone-home, no first-run ping. There
-is nothing to opt out of. Usage is understood only from passive server-side
-registry request logs and npm download counts.
+The CLI reports **anonymous, non-PII product events** so we can see which
+commands and components people actually use:
+
+| event | when |
+| --- | --- |
+| `cli_run` | every invocation (command, exit code, duration) |
+| `cli_add` | after a resolved add (component names, dry-run flag) |
+| `cli_list` / `cli_init` / `cli_update` / `cli_diff` | on successful command |
+
+Events POST to `https://tripwire.sh/r/cli-event` (no secrets in the package);
+Tripwire forwards them to Databuddy. A random id is stored under
+`~/.cache/dither-kit/anon-id` so runs on the same machine correlate without
+identifying you. Failures are swallowed — analytics never changes exit codes.
+
+**Opt out:**
+
+```bash
+export DO_NOT_TRACK=1
+# or
+export DITHER_KIT_TELEMETRY=0
+```
+
+Per-item install volume is also measured server-side when the registry is
+fetched (`registry_install` on `tripwire.sh/r/<item>.json`).
 
 ## Configuration
 

@@ -1,6 +1,6 @@
 {
   "name": "@dither-kit/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The Dither Kit installer — add composable dithered charts to your shadcn/ui project, with a lockfile so you can update and diff them later.",
   "keywords": [
     "dither-kit",

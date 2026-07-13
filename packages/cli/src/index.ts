@@ -2,6 +2,12 @@ import { CommanderError } from "commander"
 import pc from "picocolors"
 import { buildProgram } from "./cli.js"
 import { CliError, ExitCode } from "./errors.js"
+import {
+  commandFromArgv,
+  flushTelemetry,
+  track,
+  type TelemetryEvent,
+} from "./telemetry.js"
 
 // Ctrl-C exits immediately and cleanly — no half-written files. @clack/prompts
 // handles cancellation inside prompts; this covers the rest (e.g. a hanging
@@ -39,7 +45,17 @@ function isDebug(): boolean {
   return argv.includes("--debug") || (d !== undefined && d !== "" && d !== "0")
 }
 
+const COMMAND_EVENTS: Record<string, TelemetryEvent> = {
+  add: "cli_add",
+  list: "cli_list",
+  init: "cli_init",
+  update: "cli_update",
+  diff: "cli_diff",
+}
+
 export async function run(argv: string[] = process.argv): Promise<void> {
+  const started = Date.now()
+  const command = commandFromArgv(argv)
   const program = buildProgram()
   // We own exit codes + error formatting, so intercept commander's exits.
   program.exitOverride()
@@ -58,6 +74,22 @@ export async function run(argv: string[] = process.argv): Promise<void> {
       return
     }
     process.exitCode = reportError(err)
+  } finally {
+    const exitCode = process.exitCode ?? ExitCode.Ok
+    const durationMs = Date.now() - started
+    track("cli_run", {
+      command,
+      exit_code: typeof exitCode === "number" ? exitCode : 0,
+      duration_ms: durationMs,
+      dry_run: argv.includes("--dry-run") || argv.includes("-n"),
+      json: argv.includes("--json"),
+    })
+    // Per-command success signal (add also records components in add.ts).
+    const specific = COMMAND_EVENTS[command]
+    if (specific && specific !== "cli_add" && exitCode === ExitCode.Ok) {
+      track(specific, { duration_ms: durationMs })
+    }
+    await flushTelemetry()
   }
 }
 

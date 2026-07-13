@@ -13,6 +13,7 @@ import { requireProject } from "../project.js"
 import { closure, groupByCategory, resolveItem, type RegistryDeps } from "../registry.js"
 import { resolveNames } from "../resolve.js"
 import { runShadcnAdd } from "../shadcn.js"
+import { track } from "../telemetry.js"
 import { confirmYes, pickComponents, type Choice } from "../ui.js"
 import { loadRegistry } from "./shared.js"
 
@@ -55,6 +56,11 @@ export async function add(
 
   // 4. Dry run: describe exactly what would happen, write nothing.
   if (ctx.dryRun) {
+    track("cli_add", {
+      components: resolved.map((it) => it.name),
+      count: resolved.length,
+      dry_run: true,
+    })
     return reportDryRun(ctx, log, resolved, items)
   }
 
@@ -70,6 +76,13 @@ export async function add(
     lock = { ...lock, components: { ...lock.components, [item.name]: lockComponentFor(item) } }
   }
   writeLockfile(project.root, lock)
+
+  track("cli_add", {
+    components: resolved.map((it) => it.name),
+    count: resolved.length,
+    closure: items.map((it) => it.name),
+    dry_run: false,
+  })
 
   // 7. Tell the user what changed + what's next.
   return report(ctx, log, resolved, items)
