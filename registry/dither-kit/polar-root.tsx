@@ -14,7 +14,10 @@ import { axisAtAngle, sliceAtAngle } from "./polar"
 import { PolarChartContext, usePolarController } from "./polar-context"
 import { useChartDimensions } from "./use-chart-dimensions"
 
-type Row = Record<string, unknown>
+// `object` rather than `Record<string, unknown>`: interfaces don't get an
+// implicit index signature, so interface-typed rows failed to satisfy the
+// generic. Internal layers still index rows through their own Row type.
+type Row = object
 
 const DEFAULT_POLAR_MARGINS: Margins = {
   top: 22,
@@ -76,7 +79,8 @@ export function PolarRoot<TData extends Row>({
 
   const ctx = usePolarController({
     chartType,
-    data,
+    // Safe: the controller only reads row[key] for the configured keys.
+    data: data as Record<string, unknown>[],
     config,
     dataKey,
     nameKey,

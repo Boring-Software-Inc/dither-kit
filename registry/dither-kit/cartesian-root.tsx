@@ -19,7 +19,10 @@ import { cn } from "./lib"
 import type { StackType } from "./scales"
 import { useChartDimensions } from "./use-chart-dimensions"
 
-type Row = Record<string, unknown>
+// `object` rather than `Record<string, unknown>`: interfaces don't get an
+// implicit index signature, so interface-typed rows failed to satisfy the
+// generic. Internal layers still index rows through their own Row type.
+type Row = object
 
 const DEFAULT_MARGINS: Margins = {
   top: 10,
@@ -100,7 +103,8 @@ export function CartesianRoot<TData extends Row>({
 
   const ctx = useChartController({
     chartType,
-    data,
+    // Safe: the controller only reads row[key] for the configured series keys.
+    data: data as Record<string, unknown>[],
     config,
     stackType,
     dimensions: size,

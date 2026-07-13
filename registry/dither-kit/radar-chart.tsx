@@ -7,7 +7,10 @@ import { PolarRoot } from "./polar-root"
 import { RadarCanvas } from "./radar-canvas"
 import { RadarFrame } from "./radar-frame"
 
-type Row = Record<string, unknown>
+// `object` rather than `Record<string, unknown>`: interfaces don't get an
+// implicit index signature, so interface-typed rows failed to satisfy the
+// generic. Internal layers still index rows through their own Row type.
+type Row = object
 
 export type RadarChartProps<TData extends Row> = {
   data: TData[]
