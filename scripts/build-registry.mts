@@ -46,8 +46,17 @@ const AUTHOR = "ripgrim"
 // ABSOLUTE dependency URLs so `shadcn add https://tripwire.sh/r/area-chart.json`
 // resolves `core` transitively with zero components.json registry config — the
 // CLI hands shadcn a URL and shadcn does the rest.
-const REGISTRY_BASE = "https://tripwire.sh"
+//
+// The base is overridable via DITHER_KIT_REGISTRY_BASE for local end-to-end
+// testing only: point it at your local server (e.g. http://127.0.0.1:8791) to
+// regenerate a registry whose dependency URLs are reachable without the
+// tripwire.sh host. Committed output must always use the default — restore with
+// `git checkout -- r/ registry.json` after a local build.
+const REGISTRY_BASE = (process.env.DITHER_KIT_REGISTRY_BASE ?? "https://tripwire.sh").replace(/\/+$/, "")
 const depUrl = (dep: string) => `${REGISTRY_BASE}/r/${dep.replace(`${NS}/`, "")}.json`
+if (REGISTRY_BASE !== "https://tripwire.sh") {
+  console.warn(`⚠ building registry with base ${REGISTRY_BASE} — local testing only; restore with \`git checkout -- r/ registry.json\` before committing.`)
+}
 
 // GitHub repo backing the zero-config shorthand. shadcn reads registry.json at
 // the repo root and pulls each file straight from the repo.
