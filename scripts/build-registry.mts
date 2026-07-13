@@ -165,12 +165,47 @@ const ITEMS: ItemDef[] = [
     devDependencies: [],
   },
   {
+    name: "avatar",
+    title: "Dither Avatar",
+    description:
+      "Generative mirrored pixel avatars in the ordered-dither texture — ~1.5 trillion combinations from a name, deterministic, with a hue override and a Bayer-ordered materialize entrance. Standalone: installs without the chart engine.",
+    categories: ["avatars"],
+    // Standalone on purpose — shares only the pixel primitives + palette, so a
+    // footer avatar row doesn't pull in d3/motion.
+    files: ["avatar.tsx", "pixel.ts", "palette.ts", "lib.ts"],
+    registryDependencies: [],
+    dependencies: ["clsx", "tailwind-merge"],
+    devDependencies: [],
+  },
+  {
+    name: "button",
+    title: "Dither Button",
+    description:
+      "Dithered buttons — a native <button> filled with the charts' ordered-dither texture (gradient / dotted / hatched / solid), easing denser and brighter on hover and press, with optional bloom. Standalone: installs without the chart engine.",
+    categories: ["buttons"],
+    files: ["button.tsx", "pixel.ts", "palette.ts", "lib.ts"],
+    registryDependencies: [],
+    dependencies: ["clsx", "tailwind-merge"],
+    devDependencies: [],
+  },
+  {
+    name: "gradient",
+    title: "Dither Gradient",
+    description:
+      "Dithered gradient washes for backgrounds — footer glows, section fades, card backdrops. Dissolves to transparent or dither-blends two colours, any direction, with optional bloom. Standalone: installs without the chart engine.",
+    categories: ["gradients"],
+    files: ["gradient.tsx", "pixel.ts", "palette.ts", "lib.ts"],
+    registryDependencies: [],
+    dependencies: ["clsx", "tailwind-merge"],
+    devDependencies: [],
+  },
+  {
     name: "dither-kit",
     title: "Dither Kit — Everything",
     description:
-      "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine. Inspired by Evil Charts (evilcharts.com).",
+      "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine, plus generative dithered avatars, buttons, and gradient washes. Inspired by Evil Charts (evilcharts.com).",
     categories: ["charts"],
-    // The barrel only ships here — it re-exports every chart, so it is only
+    // The barrel only ships here — it re-exports every piece, so it is only
     // valid when everything is installed.
     files: ["index.ts"],
     registryDependencies: [
@@ -178,6 +213,9 @@ const ITEMS: ItemDef[] = [
       `${NS}/bar-chart`,
       `${NS}/pie-chart`,
       `${NS}/radar-chart`,
+      `${NS}/avatar`,
+      `${NS}/button`,
+      `${NS}/gradient`,
     ],
     dependencies: [],
     devDependencies: [],
