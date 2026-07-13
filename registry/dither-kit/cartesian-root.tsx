@@ -16,7 +16,7 @@ import {
 import { CommonChartContext } from "./common-context"
 import type { BloomInput } from "./dither-paint"
 import { cn } from "./lib"
-import type { StackType } from "./scales"
+import type { StackType, YDomain } from "./scales"
 import { useChartDimensions } from "./use-chart-dimensions"
 
 // `object` rather than `Record<string, unknown>`: interfaces don't get an
@@ -36,6 +36,9 @@ export type CartesianChartProps<TData extends Row> = {
   config: ChartConfig
   children: ReactNode
   stackType?: StackType
+  /** `"auto"` fits the domain to the data (padded); `[lo, hi]` uses an
+   * explicit domain verbatim. Defaults to the zero-anchored domain. */
+  yDomain?: YDomain
   margins?: Partial<Margins>
   className?: string
   animate?: boolean
@@ -81,6 +84,7 @@ export function CartesianRoot<TData extends Row>({
   config,
   children,
   stackType = "default",
+  yDomain = "zero",
   margins: marginsProp,
   className,
   animate = true,
@@ -107,6 +111,7 @@ export function CartesianRoot<TData extends Row>({
     data: data as Record<string, unknown>[],
     config,
     stackType,
+    yDomain,
     dimensions: size,
     margins,
     animate,

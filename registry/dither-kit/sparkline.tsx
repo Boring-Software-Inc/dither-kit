@@ -6,12 +6,16 @@ import { AreaChart } from "./area-chart"
 import type { AreaVariant } from "./chart-context"
 import type { BloomInput } from "./dither-paint"
 import type { DitherColor } from "./palette"
+import type { YDomain } from "./scales"
 
 export type SparklineProps = {
   /** Plain numeric series — the common sparkline case. */
   data: number[]
   color: DitherColor
   variant?: AreaVariant
+  /** `"auto"` fits the domain to the data — often what a spark wants,
+   * since it exists to show shape. Defaults to the zero-anchored domain. */
+  yDomain?: YDomain
   /** Controlled crosshair position (e.g. a committed point). */
   markerIndex?: number | null
   /** Parent-driven hover (e.g. the whole card/row) — lifts the fill. */
@@ -34,6 +38,7 @@ export function Sparkline({
   data,
   color,
   variant = "gradient",
+  yDomain = "zero",
   markerIndex = null,
   hovered = false,
   bloom = "off",
@@ -51,6 +56,7 @@ export function Sparkline({
     <AreaChart
       data={rows}
       config={config}
+      yDomain={yDomain}
       interactive={false}
       animate={animate}
       markerIndex={markerIndex}
