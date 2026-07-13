@@ -367,6 +367,44 @@
       ]
     },
     {
+      "name": "icon",
+      "type": "registry:component",
+      "title": "Dither Icon",
+      "description": "SVG-to-dither compiler - takes any SVG icon component, rasterizes it and re-emits it through the ordered-dither texture, with the Bayer materialize entrance and a controlled progress for scroll-linked reveals. Standalone: installs without the chart engine.",
+      "categories": [
+        "icons"
+      ],
+      "version": "0.1.0",
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
+      "devDependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/dither-kit/icon.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/icon.tsx"
+        },
+        {
+          "path": "registry/dither-kit/pixel.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/pixel.ts"
+        },
+        {
+          "path": "registry/dither-kit/palette.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/palette.ts"
+        },
+        {
+          "path": "registry/dither-kit/lib.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/lib.ts"
+        }
+      ]
+    },
+    {
       "name": "dither-kit",
       "type": "registry:component",
       "title": "Dither Kit — Everything",
@@ -384,7 +422,8 @@
         "Boring-Software-Inc/dither-kit/radar-chart",
         "Boring-Software-Inc/dither-kit/avatar",
         "Boring-Software-Inc/dither-kit/button",
-        "Boring-Software-Inc/dither-kit/gradient"
+        "Boring-Software-Inc/dither-kit/gradient",
+        "Boring-Software-Inc/dither-kit/icon"
       ],
       "files": [
         {

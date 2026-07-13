@@ -34,6 +34,7 @@ export {
   type GradientDirection,
 } from "./gradient"
 export { Grid } from "./grid"
+export { DitherIcon, type DitherIconProps } from "./icon"
 export { Legend } from "./legend"
 export type { DitherColor } from "./palette"
 export type { PixelBloom, PixelColor } from "./pixel"
