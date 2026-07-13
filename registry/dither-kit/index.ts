@@ -7,6 +7,11 @@ export {
 } from "./avatar"
 export { Bar, type BarProps } from "./bar"
 export { BarChart } from "./bar-chart"
+export {
+  type ButtonVariant,
+  DitherButton,
+  type DitherButtonProps,
+} from "./button"
 export type { CartesianChartProps } from "./cartesian-root"
 export type {
   AreaVariant,

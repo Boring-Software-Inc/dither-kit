@@ -125,6 +125,16 @@ const ITEMS = [
     devDependencies: [],
   },
   {
+    name: "button",
+    title: "Dither Button",
+    description:
+      "Dithered buttons — a native <button> filled with the charts' ordered-dither texture (gradient / dotted / hatched / solid), easing denser and brighter on hover and press, with optional bloom. Standalone: installs without the chart engine.",
+    files: ["button.tsx", "pixel.ts", "palette.ts", "lib.ts"],
+    registryDependencies: [],
+    dependencies: ["clsx", "tailwind-merge"],
+    devDependencies: [],
+  },
+  {
     name: "gradient",
     title: "Dither Gradient",
     description:
@@ -138,7 +148,7 @@ const ITEMS = [
     name: "dither-kit",
     title: "Dither Kit — Everything",
     description:
-      "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine, plus generative dithered avatars and gradient washes. Inspired by Evil Charts (evilcharts.com).",
+      "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine, plus generative dithered avatars, buttons, and gradient washes. Inspired by Evil Charts (evilcharts.com).",
     // The barrel only ships here — it re-exports every piece, so it is only
     // valid when everything is installed.
     files: ["index.ts"],
@@ -148,6 +158,7 @@ const ITEMS = [
       `${NS}/pie-chart`,
       `${NS}/radar-chart`,
       `${NS}/avatar`,
+      `${NS}/button`,
       `${NS}/gradient`,
     ],
     dependencies: [],

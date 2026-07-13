@@ -21,6 +21,7 @@ Available items:
 | `pie-chart` | pie / donut |
 | `radar-chart` | radar |
 | `avatar` | generative mirrored pixel avatars (standalone, no chart engine) |
+| `button` | dithered native buttons with hover/press lift (standalone) |
 | `gradient` | dithered gradient washes for backgrounds (standalone) |
 | `core` | shared engine (installed automatically) |
 | `dither-kit` | everything at once |
@@ -51,18 +52,24 @@ const config = { desktop: { label: "Desktop", color: "blue" } }
 - `variant`: `gradient` | `dotted` | `hatched` | `solid`
 - `bloom`: `off` | `low` | `high` | `aura`
 
-### Avatars & gradients
+### Avatars, buttons & gradients
 
-Both are standalone — they install without the chart engine:
+All three are standalone — they install without the chart engine:
 
 ```tsx
 import { DitherAvatar } from "@/components/dither-kit/avatar"
+import { DitherButton } from "@/components/dither-kit/button"
 import { DitherGradient } from "@/components/dither-kit/gradient"
 
 // deterministic from the name — ~1.5 trillion combinations across the
 // mirrored pattern, mirror axis (left/right or top/bottom), and hue
 <DitherAvatar name="dan" size={64} />
 <DitherAvatar name="dan" hue={210} size={64} />   // hue override, 0–360
+
+// a real <button> — the dither eases denser on hover, denser still pressed
+<DitherButton color="blue" variant="gradient" onClick={save}>
+  save changes
+</DitherButton>
 
 // dithered wash that fills its nearest relative ancestor
 <footer className="relative">
@@ -72,6 +79,7 @@ import { DitherGradient } from "@/components/dither-kit/gradient"
 ```
 
 - avatar `mirror`: `auto` | `horizontal` | `vertical` (auto picks per name)
+- button `variant`: the chart textures — `gradient` | `dotted` | `hatched` | `solid`
 - gradient `to`: a colour for a two-tone dither blend, or `"transparent"` (default)
 - gradient `direction`: `up` | `down` | `left` | `right`; `cell` sets chunkiness
 

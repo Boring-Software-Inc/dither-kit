@@ -261,6 +261,39 @@
       ]
     },
     {
+      "name": "button",
+      "type": "registry:component",
+      "title": "Dither Button",
+      "description": "Dithered buttons — a native <button> filled with the charts' ordered-dither texture (gradient / dotted / hatched / solid), easing denser and brighter on hover and press, with optional bloom. Standalone: installs without the chart engine.",
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "components/dither-kit/button.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/button.tsx"
+        },
+        {
+          "path": "components/dither-kit/pixel.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/pixel.ts"
+        },
+        {
+          "path": "components/dither-kit/palette.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/palette.ts"
+        },
+        {
+          "path": "components/dither-kit/lib.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/lib.ts"
+        }
+      ]
+    },
+    {
       "name": "gradient",
       "type": "registry:component",
       "title": "Dither Gradient",
@@ -297,7 +330,7 @@
       "name": "dither-kit",
       "type": "registry:component",
       "title": "Dither Kit — Everything",
-      "description": "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine, plus generative dithered avatars and gradient washes. Inspired by Evil Charts (evilcharts.com).",
+      "description": "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine, plus generative dithered avatars, buttons, and gradient washes. Inspired by Evil Charts (evilcharts.com).",
       "dependencies": [],
       "registryDependencies": [
         "@dither-kit/area-chart",
@@ -305,6 +338,7 @@
         "@dither-kit/pie-chart",
         "@dither-kit/radar-chart",
         "@dither-kit/avatar",
+        "@dither-kit/button",
         "@dither-kit/gradient"
       ],
       "files": [
