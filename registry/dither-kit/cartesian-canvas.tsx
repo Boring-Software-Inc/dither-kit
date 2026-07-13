@@ -1,6 +1,6 @@
 "use client"
 
-import { type RefObject, useEffect, useRef } from "react"
+import { type RefObject, useEffect, useMemo, useRef } from "react"
 import { type ChartContextValue, useChart } from "./chart-context"
 import {
   backingSize,
@@ -29,7 +29,7 @@ type LoopArgs = {
  * The requestAnimationFrame paint loop — eases each series toward its target
  * surface, paints the dither fill (with the entrance reveal), then layers the
  * crosshair marker and winking stars on top. Lives outside the component so the
- * component stays small and the closure is free of compiler constraints.
+ * component stays small and this hot closure isn't re-created on every render.
  * Returns a cleanup that cancels the loop.
  */
 function startCartesianLoop({
@@ -295,50 +295,54 @@ export function CartesianCanvas() {
 
   const { width, height } = ctx.plot
   const { cols, rows } = backingSize(width, height)
+  const { ready, chartType, configKeys, bands, seriesSpecs, y, dataLength } = ctx
 
-  // Per-series target [top, floor] rows, resampled to `cols`. React Compiler
-  // memoizes this against the exact ctx fields it reads.
-  const targets = (() => {
+  // Memoized: the pricey bit in the render path — a `resample` per series to
+  // the backing column count. The canvas re-renders on every hover/cursor tick
+  // (it consumes ctx), so without this the whole surface is rebuilt each time.
+  // Pinned to the exact ctx fields it reads, plus the backing geometry.
+  const targets = useMemo(() => {
     const out: Record<string, Surface> = {}
-    if (!ctx.ready) return out
+    if (!ready) return out
     const h = height || 1
     const glow = Math.max(6, Math.round(rows * 0.16))
-    const defaultKind = ctx.chartType === "line" ? "line" : "area"
-    for (const key of ctx.configKeys) {
-      const band = ctx.bands[key]
+    const defaultKind = chartType === "line" ? "line" : "area"
+    for (const key of configKeys) {
+      const band = bands[key]
       if (!band) continue
-      const line = (ctx.seriesSpecs[key]?.kind ?? defaultKind) === "line"
-      const top = band.map((b) => (ctx.y(b[1]) / h) * (rows - 1))
+      const line = (seriesSpecs[key]?.kind ?? defaultKind) === "line"
+      const top = band.map((b) => (y(b[1]) / h) * (rows - 1))
       const floor = band.map((b, i) =>
-        line
-          ? Math.min(rows - 1, top[i] + glow)
-          : (ctx.y(b[0]) / h) * (rows - 1)
+        line ? Math.min(rows - 1, top[i] + glow) : (y(b[0]) / h) * (rows - 1)
       )
       out[key] = { top: resample(top, cols), floor: resample(floor, cols) }
     }
     return out
-  })()
+  }, [ready, chartType, configKeys, bands, seriesSpecs, y, height, rows, cols])
 
-  const stars = (() => {
+  // Memoized: the star field is deterministic — only its shape (series ×
+  // column count) matters, so it need not be rebuilt on unrelated re-renders.
+  const stars = useMemo(() => {
     const out: Star[] = []
     const per = Math.max(4, Math.round(cols / 14))
-    ctx.configKeys.forEach((key, k) => {
+    configKeys.forEach((key, k) => {
       for (let i = 0; i < per; i++) {
         const seed = i * 67 + 13 + k * 131
         out.push({
           key,
-          xi: seed % Math.max(ctx.dataLength, 1),
+          xi: seed % Math.max(dataLength, 1),
           depth: ((seed * 53 + 7) % 100) / 100,
           phase: (seed * 41) % 360,
         })
       }
     })
     return out
-  })()
+  }, [configKeys, dataLength, cols])
 
   // The RAF loop reads these through refs so it always sees the latest values
   // without re-subscribing. Refs are written in an effect (never during
-  // render) so the component stays compiler-friendly.
+  // render) — mutating a ref mid-render is a React anti-pattern that tears
+  // under Strict Mode / concurrent rendering.
   const stateRef = useRef(ctx)
   const targetsRef = useRef(targets)
   const starsRef = useRef(stars)

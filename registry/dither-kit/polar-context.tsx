@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, use, useCallback, useState } from "react"
+import { createContext, use, useCallback, useMemo, useState } from "react"
 import {
   type AreaVariant,
   type ChartConfig,
@@ -121,10 +121,15 @@ export function usePolarController({
   defaultSelectedDataKey?: string | null
   onSelectionChange?: (key: string | null) => void
 }): PolarChartContextValue {
-  // React Compiler memoizes every render-scope value below — no manual
-  // useMemo/useCallback wrappers needed, except the register/unregister
-  // callbacks (see note there), which must stay stable without the compiler.
-  const configKeys = Object.keys(config)
+  // This object becomes the PolarChartContext value, so its identity — and the
+  // identity of every function/object it carries — must stay stable across
+  // renders that don't change the inputs; otherwise every consumer (legend,
+  // tooltip, slices, axes) re-renders on every parent render. The expensive
+  // derivations, exposed callbacks, and returned value are memoized below;
+  // cheap scalars (radii, ready) are left bare as plain recomputed reads.
+
+  // Memoized: drives `pie`/`radar`/`common` — a fresh array would bust them.
+  const configKeys = useMemo(() => Object.keys(config), [config])
   const revision = useRevision(data, replayToken)
 
   const [selectedDataKey, setSelectedDataKey] = useState<string | null>(
@@ -135,15 +140,16 @@ export function usePolarController({
   const [cursorX, setCursorX] = useState(0)
   const [cursorY, setCursorY] = useState(0)
   const [isMouseInChart, setMouseInChart] = useState(false)
-  const setCursor = (px: number, py: number) => {
+  // Stable (only wraps two useState setters) so the value keeps its identity.
+  const setCursor = useCallback((px: number, py: number) => {
     setCursorX(px)
     setCursorY(py)
-  }
+  }, [])
   const [variants, setVariants] = useState<Record<string, AreaVariant>>({})
 
   // useCallback for the same reason as registerSeries in chart-context.tsx:
-  // pie.tsx/radar.tsx list these as effect deps, so they need stable
-  // identities even without React Compiler.
+  // pie.tsx/radar.tsx list these as effect deps, so without stable identities
+  // the unregister/register effect re-fires and its setState pair loops.
   const registerVariant = useCallback((key: string, variant: AreaVariant) => {
     setVariants((prev) =>
       prev[key] === variant ? prev : { ...prev, [key]: variant }
@@ -158,16 +164,25 @@ export function usePolarController({
     })
   }, [])
 
-  const selectDataKey = (key: string | null) => {
-    setSelectedDataKey(key)
-    onSelectionChange?.(key)
-  }
-
-  const plotWidth = Math.max(0, dimensions.width - margins.left - margins.right)
-  const plotHeight = Math.max(
-    0,
-    dimensions.height - margins.top - margins.bottom
+  // Stable so the value keeps its identity; re-created only on config change.
+  const selectDataKey = useCallback(
+    (key: string | null) => {
+      setSelectedDataKey(key)
+      onSelectionChange?.(key)
+    },
+    [onSelectionChange]
   )
+
+  // The root spreads margins fresh every render; pin a stable object off the
+  // four numbers so it doesn't, on its own, invalidate the value.
+  const { top: mTop, right: mRight, bottom: mBottom, left: mLeft } = margins
+  const stableMargins = useMemo(
+    () => ({ top: mTop, right: mRight, bottom: mBottom, left: mLeft }),
+    [mTop, mRight, mBottom, mLeft]
+  )
+
+  const plotWidth = Math.max(0, dimensions.width - mLeft - mRight)
+  const plotHeight = Math.max(0, dimensions.height - mTop - mBottom)
   const ready = plotWidth > 0 && plotHeight > 0
   const pad = chartType === "radar" ? 20 : 6
   const outerRadius = Math.max(0, Math.min(plotWidth, plotHeight) / 2 - pad)
@@ -175,14 +190,26 @@ export function usePolarController({
   const centerX = plotWidth / 2
   const centerY = plotHeight / 2
 
-  const seedOf = (key: string) => seedOfColor(config[key]?.color ?? "grey")
+  // Stable so `common` and the value stay stable; re-created only on config.
+  const seedOf = useCallback(
+    (key: string) => seedOfColor(config[key]?.color ?? "grey"),
+    [config]
+  )
   // "*" is the pie-wide variant set by <Pie>; radar registers per series key.
-  const variantOf = (key: string) =>
-    variants[key] ?? variants["*"] ?? "gradient"
+  const variantOf = useCallback(
+    (key: string) => variants[key] ?? variants["*"] ?? "gradient",
+    [variants]
+  )
 
-  const pie = chartType === "pie" ? pieSlices(data, dataKey, nameKey) : null
+  // Memoized: slice geometry — recomputing it on every hover/cursor tick would
+  // rebuild the pie layout needlessly.
+  const pie = useMemo(
+    () => (chartType === "pie" ? pieSlices(data, dataKey, nameKey) : null),
+    [chartType, data, dataKey, nameKey]
+  )
 
-  const radar = (() => {
+  // Memoized: walks every row × series for the axis max, then builds the axes.
+  const radar = useMemo(() => {
     if (chartType !== "radar") return null
     let max = 0
     for (const row of data) {
@@ -192,14 +219,13 @@ export function usePolarController({
       }
     }
     return { axes: radarAxes(data, nameKey), max: max || 1 }
-  })()
+  }, [chartType, data, configKeys, nameKey])
 
-  const common: CommonChart = (() => {
-    const tooltipLeft = Math.max(
-      48,
-      Math.min(plotWidth + margins.left - 48, cursorX)
-    )
-    const tooltipTop = Math.max(margins.top + 44, cursorY)
+  // Memoized: this is the value handed to CommonChartContext (Legend/Tooltip),
+  // so it needs its own stable identity independent of the parent value.
+  const common: CommonChart = useMemo<CommonChart>(() => {
+    const tooltipLeft = Math.max(48, Math.min(plotWidth + mLeft - 48, cursorX))
+    const tooltipTop = Math.max(mTop + 44, cursorY)
     const emphasis = selectedDataKey ?? focusDataKey
     if (chartType === "pie" && pie) {
       const names = pie.map((s) => s.name)
@@ -257,40 +283,100 @@ export function usePolarController({
           }
         }),
     }
-  })()
-
-  return {
+  }, [
     chartType,
     config,
     configKeys,
     data,
-    dataLength: data.length,
-    ready,
-    plot: { width: plotWidth, height: plotHeight },
-    margins,
-    center: { x: centerX, y: centerY },
-    outerRadius,
-    innerRadius,
-    animate,
-    animationDuration,
-    revision,
-    bloom,
-    bloomOnHover,
+    pie,
+    radar,
     seedOf,
-    variantOf,
-    registerVariant,
-    unregisterVariant,
     selectedDataKey,
     selectDataKey,
     focusDataKey,
     setFocusDataKey,
     hoverIndex,
-    setHoverIndex,
-    setCursor,
-    isMouseInChart,
-    setMouseInChart,
-    pie,
-    radar,
-    common,
-  }
+    ready,
+    plotWidth,
+    mLeft,
+    mTop,
+    cursorX,
+    cursorY,
+  ])
+
+  // Memoized: this is the PolarChartContext value. A fresh object here would
+  // re-render every consumer on every parent render — the reason the pieces
+  // above are stabilized. Rebuilds only when a listed input changes. The
+  // useState setters are listed but never change identity.
+  return useMemo<PolarChartContextValue>(
+    () => ({
+      chartType,
+      config,
+      configKeys,
+      data,
+      dataLength: data.length,
+      ready,
+      plot: { width: plotWidth, height: plotHeight },
+      margins: stableMargins,
+      center: { x: centerX, y: centerY },
+      outerRadius,
+      innerRadius,
+      animate,
+      animationDuration,
+      revision,
+      bloom,
+      bloomOnHover,
+      seedOf,
+      variantOf,
+      registerVariant,
+      unregisterVariant,
+      selectedDataKey,
+      selectDataKey,
+      focusDataKey,
+      setFocusDataKey,
+      hoverIndex,
+      setHoverIndex,
+      setCursor,
+      isMouseInChart,
+      setMouseInChart,
+      pie,
+      radar,
+      common,
+    }),
+    [
+      chartType,
+      config,
+      configKeys,
+      data,
+      ready,
+      plotWidth,
+      plotHeight,
+      stableMargins,
+      centerX,
+      centerY,
+      outerRadius,
+      innerRadius,
+      animate,
+      animationDuration,
+      revision,
+      bloom,
+      bloomOnHover,
+      seedOf,
+      variantOf,
+      registerVariant,
+      unregisterVariant,
+      selectedDataKey,
+      selectDataKey,
+      focusDataKey,
+      setFocusDataKey,
+      hoverIndex,
+      setHoverIndex,
+      setCursor,
+      isMouseInChart,
+      setMouseInChart,
+      pie,
+      radar,
+      common,
+    ]
+  )
 }
