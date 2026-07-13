@@ -93,6 +93,8 @@ const CORE_FILES = [
   "dot.tsx",
   "legend.tsx",
   "tooltip.tsx",
+  "reference-line.tsx",
+  "reference-area.tsx",
 ]
 
 // Source definition of each item. `categories` drives how the CLI groups

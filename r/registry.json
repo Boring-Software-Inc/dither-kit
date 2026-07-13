@@ -111,6 +111,16 @@
           "path": "components/dither-kit/tooltip.tsx",
           "type": "registry:component",
           "target": "components/dither-kit/tooltip.tsx"
+        },
+        {
+          "path": "components/dither-kit/reference-line.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/reference-line.tsx"
+        },
+        {
+          "path": "components/dither-kit/reference-area.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/reference-area.tsx"
         }
       ]
     },
