@@ -29,7 +29,7 @@ import { z } from "zod"
  * registry JSON without a CLI release. The constant just documents the ones we
  * expect today and gives callers a stable display order.
  */
-export const CATEGORIES = ["charts", "buttons", "gradients", "core"] as const
+export const CATEGORIES = ["charts", "buttons", "gradients", "avatars", "core"] as const
 export type KnownCategory = (typeof CATEGORIES)[number]
 
 /**

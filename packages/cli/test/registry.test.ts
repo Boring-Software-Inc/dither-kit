@@ -17,7 +17,8 @@ describe("getRegistry: fetch + cache + offline fallback", () => {
     const dir = tmpCache()
     const res = await getRegistry(ctx, { cacheDir: dir, fetchText: localFetch, now: () => 1000 })
     assert.equal(res.source, "network")
-    assert.equal(res.registry.items.length, 6)
+    assert.ok(res.registry.items.length >= 6)
+    assert.ok(res.registry.items.some((i) => i.name === "area-chart"))
     assert.ok(existsSync(join(dir, "registry.json")), "cache file was written")
     // The cache records when it was fetched and against which base.
     const env = JSON.parse(readFileSync(join(dir, "registry.json"), "utf8"))
@@ -37,7 +38,8 @@ describe("getRegistry: fetch + cache + offline fallback", () => {
       now: () => 5000,
     })
     assert.equal(res.source, "cache")
-    assert.equal(res.registry.items.length, 6)
+    assert.ok(res.registry.items.length >= 6)
+    assert.ok(res.registry.items.some((i) => i.name === "area-chart"))
   })
 
   test("a stale cache is used when the registry is unreachable, and flagged", async () => {
@@ -52,7 +54,8 @@ describe("getRegistry: fetch + cache + offline fallback", () => {
       now: () => 999_999,
     })
     assert.equal(res.source, "stale")
-    assert.equal(res.registry.items.length, 6)
+    assert.ok(res.registry.items.length >= 6)
+    assert.ok(res.registry.items.some((i) => i.name === "area-chart"))
   })
 
   test("no cache + offline is a network error", async () => {

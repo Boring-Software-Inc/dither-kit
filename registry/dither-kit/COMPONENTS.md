@@ -33,6 +33,9 @@ npx shadcn@latest add @dither-kit/area-chart    # area + line (+ Sparkline)
 npx shadcn@latest add @dither-kit/bar-chart
 npx shadcn@latest add @dither-kit/pie-chart
 npx shadcn@latest add @dither-kit/radar-chart
+npx shadcn@latest add @dither-kit/avatar        # standalone, no core
+npx shadcn@latest add @dither-kit/button        # standalone, no core
+npx shadcn@latest add @dither-kit/gradient      # standalone, no core
 npx shadcn@latest add @dither-kit/dither-kit    # everything at once
 ```
 
@@ -99,6 +102,29 @@ Swap `AreaChart` → `LineChart` / `BarChart` (and `Area` → `Line` /
 <div className="h-11 w-32">
   <Sparkline data={[3, 7, 5, 9, 8, 12]} color="green" hovered={cardHovered} />
 </div>
+```
+
+### Avatar, button & gradient (standalone)
+
+None of these pull in the chart engine — they share only the pixel primitives
+(`pixel.ts`) and the palette.
+
+```tsx
+// Deterministic from the name: 32 mirrored pattern bits × 2 mirror axes ×
+// 180 hues ≈ 1.5 trillion avatars. Half fold left/right, half top/bottom.
+<DitherAvatar name="dan" size={64} />
+<DitherAvatar name="dan" hue={210} size={64} />  // hue override (0–360)
+
+// A real <button> in the chart textures — eases denser on hover and press.
+<DitherButton color="blue" variant="gradient" onClick={save}>
+  save changes
+</DitherButton>
+
+// A dithered wash filling its nearest relative ancestor — footers, fades.
+<footer className="relative">
+  <DitherGradient from="purple" direction="up" />
+</footer>
+<DitherGradient from={280} to="blue" direction="right" />  // two-tone blend
 ```
 
 ## Props worth knowing

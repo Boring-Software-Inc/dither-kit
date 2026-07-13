@@ -253,10 +253,124 @@
       ]
     },
     {
+      "name": "avatar",
+      "type": "registry:component",
+      "title": "Dither Avatar",
+      "description": "Generative mirrored pixel avatars in the ordered-dither texture — ~1.5 trillion combinations from a name, deterministic, with a hue override and a Bayer-ordered materialize entrance. Standalone: installs without the chart engine.",
+      "categories": [
+        "avatars"
+      ],
+      "version": "0.1.0",
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
+      "devDependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/dither-kit/avatar.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/avatar.tsx"
+        },
+        {
+          "path": "registry/dither-kit/pixel.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/pixel.ts"
+        },
+        {
+          "path": "registry/dither-kit/palette.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/palette.ts"
+        },
+        {
+          "path": "registry/dither-kit/lib.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/lib.ts"
+        }
+      ]
+    },
+    {
+      "name": "button",
+      "type": "registry:component",
+      "title": "Dither Button",
+      "description": "Dithered buttons — a native <button> filled with the charts' ordered-dither texture (gradient / dotted / hatched / solid), easing denser and brighter on hover and press, with optional bloom. Standalone: installs without the chart engine.",
+      "categories": [
+        "buttons"
+      ],
+      "version": "0.1.0",
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
+      "devDependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/dither-kit/button.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/button.tsx"
+        },
+        {
+          "path": "registry/dither-kit/pixel.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/pixel.ts"
+        },
+        {
+          "path": "registry/dither-kit/palette.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/palette.ts"
+        },
+        {
+          "path": "registry/dither-kit/lib.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/lib.ts"
+        }
+      ]
+    },
+    {
+      "name": "gradient",
+      "type": "registry:component",
+      "title": "Dither Gradient",
+      "description": "Dithered gradient washes for backgrounds — footer glows, section fades, card backdrops. Dissolves to transparent or dither-blends two colours, any direction, with optional bloom. Standalone: installs without the chart engine.",
+      "categories": [
+        "gradients"
+      ],
+      "version": "0.1.0",
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
+      "devDependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/dither-kit/gradient.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/gradient.tsx"
+        },
+        {
+          "path": "registry/dither-kit/pixel.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/pixel.ts"
+        },
+        {
+          "path": "registry/dither-kit/palette.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/palette.ts"
+        },
+        {
+          "path": "registry/dither-kit/lib.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/lib.ts"
+        }
+      ]
+    },
+    {
       "name": "dither-kit",
       "type": "registry:component",
       "title": "Dither Kit — Everything",
-      "description": "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine. Inspired by Evil Charts (evilcharts.com).",
+      "description": "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine, plus generative dithered avatars, buttons, and gradient washes. Inspired by Evil Charts (evilcharts.com).",
       "categories": [
         "charts"
       ],
@@ -267,7 +381,10 @@
         "Boring-Software-Inc/dither-kit/area-chart",
         "Boring-Software-Inc/dither-kit/bar-chart",
         "Boring-Software-Inc/dither-kit/pie-chart",
-        "Boring-Software-Inc/dither-kit/radar-chart"
+        "Boring-Software-Inc/dither-kit/radar-chart",
+        "Boring-Software-Inc/dither-kit/avatar",
+        "Boring-Software-Inc/dither-kit/button",
+        "Boring-Software-Inc/dither-kit/gradient"
       ],
       "files": [
         {

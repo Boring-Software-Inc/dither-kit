@@ -208,7 +208,7 @@ export function closure(names: string[], registry: Registry): RegistryItem[] {
 /** Group items by their first category, in a stable, human order. Items with no
  * category land under "other". */
 export function groupByCategory(registry: Registry): Map<string, RegistryItem[]> {
-  const order = ["charts", "buttons", "gradients", "core", "other"]
+  const order = ["charts", "buttons", "gradients", "avatars", "core", "other"]
   const groups = new Map<string, RegistryItem[]>()
   for (const item of registry.items) {
     const cat = item.categories[0] ?? "other"

@@ -32,7 +32,10 @@ Available items:
 | `bar-chart` | grouped / stacked bars |
 | `pie-chart` | pie / donut |
 | `radar-chart` | radar |
-| `core` | shared engine (installed automatically) |
+| `avatar` | generative mirrored pixel avatars (standalone) |
+| `button` | dithered buttons (standalone) |
+| `gradient` | dithered gradient washes (standalone) |
+| `core` | shared chart engine (installed automatically by the charts) |
 | `dither-kit` | everything at once |
 
 ```bash
