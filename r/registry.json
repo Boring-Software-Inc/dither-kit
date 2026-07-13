@@ -8,6 +8,10 @@
       "type": "registry:component",
       "title": "Dither Kit — Core",
       "description": "Shared engine for Dither Kit: contexts, d3 scales, the ordered-dither canvas painter, the canvas-agnostic chart shells, and the legend/tooltip/grid/axes/dot chrome. Installed automatically by every chart.",
+      "categories": [
+        "core"
+      ],
+      "version": "0.1.0",
       "dependencies": [
         "motion",
         "d3-scale",
@@ -15,6 +19,7 @@
         "clsx",
         "tailwind-merge"
       ],
+      "devDependencies": [],
       "registryDependencies": [],
       "files": [
         {
@@ -114,9 +119,14 @@
       "type": "registry:component",
       "title": "Dither Area & Line Chart",
       "description": "Composable dithered area + line charts — children-as-config API with the ordered-dither fill, winking sparkles, a gliding scrub tooltip, selection, and colour bloom. Includes Sparkline. Inspired by Evil Charts (evilcharts.com).",
+      "categories": [
+        "charts"
+      ],
+      "version": "0.1.0",
       "dependencies": [],
+      "devDependencies": [],
       "registryDependencies": [
-        "@dither-kit/core"
+        "https://tripwire.sh/r/core.json"
       ],
       "files": [
         {
@@ -146,9 +156,14 @@
       "type": "registry:component",
       "title": "Dither Bar Chart",
       "description": "Composable dithered bar chart — grouped or stacked, with a staggered grow-in wave, the ordered-dither fill, scrub tooltip, selection, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
+      "categories": [
+        "charts"
+      ],
+      "version": "0.1.0",
       "dependencies": [],
+      "devDependencies": [],
       "registryDependencies": [
-        "@dither-kit/core"
+        "https://tripwire.sh/r/core.json"
       ],
       "files": [
         {
@@ -173,9 +188,14 @@
       "type": "registry:component",
       "title": "Dither Pie / Donut Chart",
       "description": "Composable dithered pie / donut chart — per-pixel radial dither, clockwise sweep-in, slice hover-pop, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
+      "categories": [
+        "charts"
+      ],
+      "version": "0.1.0",
       "dependencies": [],
+      "devDependencies": [],
       "registryDependencies": [
-        "@dither-kit/core"
+        "https://tripwire.sh/r/core.json"
       ],
       "files": [
         {
@@ -200,9 +220,14 @@
       "type": "registry:component",
       "title": "Dither Radar Chart",
       "description": "Composable dithered radar chart — polygon-membership dither, scale-in entrance, vertex markers, the dither frame, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
+      "categories": [
+        "charts"
+      ],
+      "version": "0.1.0",
       "dependencies": [],
+      "devDependencies": [],
       "registryDependencies": [
-        "@dither-kit/core"
+        "https://tripwire.sh/r/core.json"
       ],
       "files": [
         {
@@ -232,12 +257,17 @@
       "type": "registry:component",
       "title": "Dither Kit — Everything",
       "description": "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine. Inspired by Evil Charts (evilcharts.com).",
+      "categories": [
+        "charts"
+      ],
+      "version": "0.1.0",
       "dependencies": [],
+      "devDependencies": [],
       "registryDependencies": [
-        "@dither-kit/area-chart",
-        "@dither-kit/bar-chart",
-        "@dither-kit/pie-chart",
-        "@dither-kit/radar-chart"
+        "https://tripwire.sh/r/area-chart.json",
+        "https://tripwire.sh/r/bar-chart.json",
+        "https://tripwire.sh/r/pie-chart.json",
+        "https://tripwire.sh/r/radar-chart.json"
       ],
       "files": [
         {

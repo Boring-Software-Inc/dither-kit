@@ -4,9 +4,21 @@ Composable, **dithered** charts for [shadcn/ui](https://ui.shadcn.com) — area,
 
 Live demos & docs → **[tripwire.sh/dither-kit](https://tripwire.sh/dither-kit)**
 
+> **Requires Tailwind CSS.** The components are styled with Tailwind — without it, they render unstyled. Set up [Tailwind](https://tailwindcss.com/docs/installation) and a shadcn project (`components.json`) first.
+
 ## Install
 
-Zero config — install straight from this repo with the shadcn CLI. Each chart pulls the shared `core` engine (and its deps like `motion` + `d3`) automatically:
+The recommended way is the **Dither Kit CLI**, which adds a lockfile so you can `update` and `diff` your components later:
+
+```bash
+npx @dither-kit/cli add area-chart     # add a component
+npx @dither-kit/cli list               # see what's available
+npx @dither-kit/cli update             # pull upstream changes into your copy
+```
+
+See [`packages/cli`](./packages/cli/README.md) for the full command reference.
+
+Or install straight from this repo with the shadcn CLI (zero config, no lockfile). Each chart pulls the shared `core` engine (and its deps like `motion` + `d3`) automatically:
 
 ```bash
 npx shadcn@latest add Boring-Software-Inc/dither-kit/area-chart
@@ -53,8 +65,12 @@ const config = { desktop: { label: "Desktop", color: "blue" } }
 
 - `registry/dither-kit/` — the component sources (source of truth).
 - `registry.json` — repo-root registry the shadcn CLI reads for the GitHub shorthand.
-- `r/` — host-agnostic namespace registry (content inlined) for anyone serving `@dither-kit`.
-- `scripts/build-registry.mjs` — regenerates both from the sources (`npm run build`).
+- `r/` — the registry served at `https://tripwire.sh/r/*` (content inlined); what the CLI fetches and hands to shadcn.
+- `packages/registry-core/` — `@dither-kit/registry-core`: the single shared schema for the registry item shape and the CLI lockfile.
+- `packages/cli/` — `@dither-kit/cli`: the installer (`dither-kit`).
+- `scripts/build-registry.mts` — regenerates `r/` and `registry.json` from the sources (`npm run build:registry`).
+
+See [`AGENTS.md`](./AGENTS.md) for the three rules the repo lives by, [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the dev loop, and [`HOSTING.md`](./HOSTING.md) for how the registry is served.
 
 ## Credit
 

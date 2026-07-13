@@ -2,7 +2,7 @@
   "name": "dither-kit",
   "version": "0.1.0",
   "private": true,
-  "description": "Composable, dithered charts for shadcn/ui \u2014 area, line, bar, pie & radar on a tiny ordered-dither canvas engine.",
+  "description": "Composable, dithered charts for shadcn/ui — area, line, bar, pie & radar on a tiny ordered-dither canvas engine.",
   "homepage": "https://tripwire.sh/dither-kit",
   "repository": {
     "type": "git",
@@ -10,9 +10,16 @@
   },
   "license": "MIT",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "node scripts/build-registry.mjs",
-    "test": "vitest run"
+    "build": "npm run build:core && npm run build:registry && npm run build:cli",
+    "build:core": "npm run build -w @dither-kit/registry-core",
+    "build:cli": "npm run build -w @dither-kit/cli",
+    "build:registry": "tsx scripts/build-registry.mts",
+    "test": "vitest run && npm run test:cli",
+    "test:cli": "node --import tsx --test packages/cli/test/*.test.ts"
   },
   "devDependencies": {
     "@testing-library/react": "^16.1.0",
@@ -25,6 +32,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.6.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^2.1.8"
   }

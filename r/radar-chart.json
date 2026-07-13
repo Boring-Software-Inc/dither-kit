@@ -5,10 +5,14 @@
   "title": "Dither Radar Chart",
   "description": "Composable dithered radar chart — polygon-membership dither, scale-in entrance, vertex markers, the dither frame, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
   "author": "ripgrim",
+  "categories": [
+    "charts"
+  ],
+  "version": "0.1.0",
   "dependencies": [],
   "devDependencies": [],
   "registryDependencies": [
-    "@dither-kit/core"
+    "https://tripwire.sh/r/core.json"
   ],
   "files": [
     {
