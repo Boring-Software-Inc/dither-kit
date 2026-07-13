@@ -200,6 +200,17 @@ const ITEMS: ItemDef[] = [
     devDependencies: [],
   },
   {
+    name: "skeleton",
+    title: "Dither Skeleton",
+    description:
+      "Dithered loading placeholders - a shimmer band sweeping through the ordered-dither texture, with a seeded chart-silhouette variant so chart slots load in character. Standalone: installs without the chart engine.",
+    categories: ["skeletons"],
+    files: ["skeleton.tsx", "pixel.ts", "palette.ts", "lib.ts"],
+    registryDependencies: [],
+    dependencies: ["clsx", "tailwind-merge"],
+    devDependencies: [],
+  },
+  {
     name: "dither-kit",
     title: "Dither Kit — Everything",
     description:
@@ -216,6 +227,7 @@ const ITEMS: ItemDef[] = [
       `${NS}/avatar`,
       `${NS}/button`,
       `${NS}/gradient`,
+      `${NS}/skeleton`,
     ],
     dependencies: [],
     devDependencies: [],
