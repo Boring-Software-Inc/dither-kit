@@ -367,6 +367,44 @@
       ]
     },
     {
+      "name": "skeleton",
+      "type": "registry:component",
+      "title": "Dither Skeleton",
+      "description": "Dithered loading placeholders - a shimmer band sweeping through the ordered-dither texture, with a seeded chart-silhouette variant so chart slots load in character. Standalone: installs without the chart engine.",
+      "categories": [
+        "skeletons"
+      ],
+      "version": "0.1.0",
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
+      "devDependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "components/dither-kit/skeleton.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/skeleton.tsx"
+        },
+        {
+          "path": "components/dither-kit/pixel.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/pixel.ts"
+        },
+        {
+          "path": "components/dither-kit/palette.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/palette.ts"
+        },
+        {
+          "path": "components/dither-kit/lib.ts",
+          "type": "registry:component",
+          "target": "components/dither-kit/lib.ts"
+        }
+      ]
+    },
+    {
       "name": "dither-kit",
       "type": "registry:component",
       "title": "Dither Kit — Everything",
@@ -384,7 +422,8 @@
         "https://tripwire.sh/r/radar-chart.json",
         "https://tripwire.sh/r/avatar.json",
         "https://tripwire.sh/r/button.json",
-        "https://tripwire.sh/r/gradient.json"
+        "https://tripwire.sh/r/gradient.json",
+        "https://tripwire.sh/r/skeleton.json"
       ],
       "files": [
         {

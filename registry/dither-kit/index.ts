@@ -41,6 +41,11 @@ export { Pie, type PieProps } from "./pie"
 export { PieChart, type PieChartProps } from "./pie-chart"
 export { Radar, type RadarProps } from "./radar"
 export { RadarChart, type RadarChartProps } from "./radar-chart"
+export {
+  DitherSkeleton,
+  type DitherSkeletonProps,
+  type SkeletonVariant,
+} from "./skeleton"
 export type { StackType } from "./scales"
 export { Sparkline, type SparklineProps } from "./sparkline"
 export { Tooltip, type TooltipVariant } from "./tooltip"

@@ -36,6 +36,7 @@ npx shadcn@latest add @dither-kit/radar-chart
 npx shadcn@latest add @dither-kit/avatar        # standalone, no core
 npx shadcn@latest add @dither-kit/button        # standalone, no core
 npx shadcn@latest add @dither-kit/gradient      # standalone, no core
+npx shadcn@latest add @dither-kit/skeleton      # standalone, no core
 npx shadcn@latest add @dither-kit/dither-kit    # everything at once
 ```
 
@@ -126,6 +127,21 @@ None of these pull in the chart engine — they share only the pixel primitives
 </footer>
 <DitherGradient from={280} to="blue" direction="right" />  // two-tone blend
 ```
+
+### Skeleton (loading states, standalone)
+
+```tsx
+// A shimmer band sweeps through the dither while the real content loads.
+<DitherSkeleton className="h-4 w-40 rounded" />
+
+// "chart" draws a seeded area silhouette so chart slots load in character.
+// Same seed, same shape - a reloading chart never pops between silhouettes.
+<DitherSkeleton variant="chart" seed="revenue" className="h-40 rounded-lg" />
+```
+
+Always `aria-hidden` (a placeholder is decorative) - keep a text alternative
+or `aria-busy` on the host region. Honors `prefers-reduced-motion` by holding
+a static frame.
 
 ## Props worth knowing
 
