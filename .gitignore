@@ -2,5 +2,8 @@ node_modules
 .DS_Store
 *.log
 
+# build output (packages are built on publish via prepublishOnly)
+dist
+
 # test tooling is dev-only; consumers install from the registry
 package-lock.json

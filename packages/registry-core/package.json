@@ -1,0 +1,41 @@
+{
+  "name": "@dither-kit/registry-core",
+  "version": "0.1.0",
+  "description": "Shared schema for the Dither Kit registry: the single source of truth for the registry-item shape and the CLI lockfile, as zod schemas with inferred types.",
+  "homepage": "https://tripwire.sh/dither-kit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Boring-Software-Inc/dither-kit.git",
+    "directory": "packages/registry-core"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.5.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

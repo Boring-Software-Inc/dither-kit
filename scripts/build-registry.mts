@@ -1,16 +1,24 @@
 // Builds the Dither Kit shadcn registry — one item per chart, plus a shared
 // `core` engine they all depend on.
 //
-//   npm run build   (or: node scripts/build-registry.mjs)
+//   npm run build:registry   (or: tsx scripts/build-registry.mts)
 //
-// Emits two things from the sources in registry/dither-kit/:
+// Emits three things from the sources in registry/dither-kit/:
 //   • registry.json at the repo root — powers shadcn's zero-config GitHub
 //     shorthand: `npx shadcn@latest add Boring-Software-Inc/dither-kit/<item>`.
-//     File paths are repo-relative sources; no inline content (the CLI reads
+//     File paths are repo-relative sources; no inline content (shadcn reads
 //     each file straight from the repo), and deps use the owner/repo/<item>
 //     address so `core` resolves without any components.json.
-//   • r/<item>.json + r/registry.json — a host-agnostic namespace registry
-//     (content inlined) for anyone serving it under a "@dither-kit" namespace.
+//   • r/<item>.json — per-item registry with content inlined, served at
+//     https://tripwire.sh/r/<item>.json. This is what `dither-kit add` resolves
+//     to and hands to `shadcn add`.
+//   • r/registry.json — the index served at https://tripwire.sh/r/registry.json.
+//     This is what the CLI fetches to discover what is installable, grouped by
+//     `categories`.
+//
+// Every emitted item is validated against @dither-kit/registry-core — the one
+// shared definition the CLI also uses — so the registry can never drift from
+// the shape the CLI expects.
 //
 // Dither Kit is heavily inspired by Evil Charts (https://evilcharts.com,
 // https://github.com/legions-developer/evilcharts).
@@ -18,6 +26,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
+import {
+  RegistryItemSchema,
+  RegistrySchema,
+  type RegistryItem,
+} from "../packages/registry-core/src/index.js"
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
 const SRC = join(ROOT, "registry/dither-kit")
@@ -29,10 +42,22 @@ const NS = "@dither-kit"
 const HOMEPAGE = "https://tripwire.sh/dither-kit"
 const AUTHOR = "ripgrim"
 
-// GitHub repo backing the zero-config shorthand. The CLI reads registry.json at
+// Where the CLI-served registry lives. The per-item files (r/<name>.json) use
+// ABSOLUTE dependency URLs so `shadcn add https://tripwire.sh/r/area-chart.json`
+// resolves `core` transitively with zero components.json registry config — the
+// CLI hands shadcn a URL and shadcn does the rest.
+const REGISTRY_BASE = "https://tripwire.sh"
+const depUrl = (dep: string) => `${REGISTRY_BASE}/r/${dep.replace(`${NS}/`, "")}.json`
+
+// GitHub repo backing the zero-config shorthand. shadcn reads registry.json at
 // the repo root and pulls each file straight from the repo.
 const REPO = "Boring-Software-Inc/dither-kit"
 const SRC_REL = "registry/dither-kit"
+
+// Every item ships at the kit's version for now. When a component starts
+// evolving independently, give it its own version here — the CLI lockfile,
+// `update`, and `diff` are already per-component.
+const VERSION = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version as string
 
 // Shared npm deps live on `core`; chart items inherit them via registryDependencies.
 const CORE_DEPS = ["motion", "d3-scale", "d3-shape", "clsx", "tailwind-merge"]
@@ -61,12 +86,26 @@ const CORE_FILES = [
   "tooltip.tsx",
 ]
 
-const ITEMS = [
+// Source definition of each item. `categories` drives how the CLI groups
+// `list` and the `add` multiselect as the kit grows past charts.
+type ItemDef = {
+  name: string
+  title: string
+  description: string
+  categories: string[]
+  files: string[]
+  registryDependencies: string[]
+  dependencies: string[]
+  devDependencies: string[]
+}
+
+const ITEMS: ItemDef[] = [
   {
     name: "core",
     title: "Dither Kit — Core",
     description:
       "Shared engine for Dither Kit: contexts, d3 scales, the ordered-dither canvas painter, the canvas-agnostic chart shells, and the legend/tooltip/grid/axes/dot chrome. Installed automatically by every chart.",
+    categories: ["core"],
     files: CORE_FILES,
     registryDependencies: [],
     dependencies: CORE_DEPS,
@@ -77,6 +116,7 @@ const ITEMS = [
     title: "Dither Area & Line Chart",
     description:
       "Composable dithered area + line charts — children-as-config API with the ordered-dither fill, winking sparkles, a gliding scrub tooltip, selection, and colour bloom. Includes Sparkline. Inspired by Evil Charts (evilcharts.com).",
+    categories: ["charts"],
     files: ["area-chart.tsx", "cartesian-canvas.tsx", "area.tsx", "sparkline.tsx"],
     registryDependencies: [`${NS}/core`],
     dependencies: [],
@@ -87,6 +127,7 @@ const ITEMS = [
     title: "Dither Bar Chart",
     description:
       "Composable dithered bar chart — grouped or stacked, with a staggered grow-in wave, the ordered-dither fill, scrub tooltip, selection, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
+    categories: ["charts"],
     files: ["bar-chart.tsx", "bar-canvas.tsx", "bar.tsx"],
     registryDependencies: [`${NS}/core`],
     dependencies: [],
@@ -97,6 +138,7 @@ const ITEMS = [
     title: "Dither Pie / Donut Chart",
     description:
       "Composable dithered pie / donut chart — per-pixel radial dither, clockwise sweep-in, slice hover-pop, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
+    categories: ["charts"],
     files: ["pie-chart.tsx", "pie-canvas.tsx", "pie.tsx"],
     registryDependencies: [`${NS}/core`],
     dependencies: [],
@@ -107,6 +149,7 @@ const ITEMS = [
     title: "Dither Radar Chart",
     description:
       "Composable dithered radar chart — polygon-membership dither, scale-in entrance, vertex markers, the dither frame, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
+    categories: ["charts"],
     files: ["radar-chart.tsx", "radar-canvas.tsx", "radar.tsx", "radar-frame.tsx"],
     registryDependencies: [`${NS}/core`],
     dependencies: [],
@@ -117,6 +160,7 @@ const ITEMS = [
     title: "Dither Kit — Everything",
     description:
       "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine. Inspired by Evil Charts (evilcharts.com).",
+    categories: ["charts"],
     // The barrel only ships here — it re-exports every chart, so it is only
     // valid when everything is installed.
     files: ["index.ts"],
@@ -133,7 +177,7 @@ const ITEMS = [
 
 mkdirSync(OUT, { recursive: true })
 
-function fileEntry(name) {
+function fileEntry(name: string) {
   return {
     path: `${TARGET_DIR}/${name}`,
     type: "registry:component",
@@ -142,24 +186,30 @@ function fileEntry(name) {
   }
 }
 
-// Namespace registry — per-item files with content inlined (host-agnostic).
+// Per-item registry files, content inlined — served at r/<item>.json. Validated
+// against the shared schema so the CLI can trust every field it reads.
 for (const it of ITEMS) {
-  const json = {
+  const json: RegistryItem = RegistryItemSchema.parse({
     $schema: "https://ui.shadcn.com/schema/registry-item.json",
     name: it.name,
     type: "registry:component",
     title: it.title,
     description: it.description,
     author: AUTHOR,
+    categories: it.categories,
+    version: VERSION,
     dependencies: it.dependencies,
     devDependencies: it.devDependencies,
-    registryDependencies: it.registryDependencies,
+    registryDependencies: it.registryDependencies.map(depUrl),
     files: it.files.map(fileEntry),
-  }
+  })
   writeFileSync(join(OUT, `${it.name}.json`), `${JSON.stringify(json, null, 2)}\n`)
 }
 
-const nsRegistry = {
+// Registry index — the list the CLI fetches. No inline content (it resolves
+// each item's own r/<name>.json), but carries categories + version for grouping
+// and update/diff.
+const nsRegistry = RegistrySchema.parse({
   $schema: "https://ui.shadcn.com/schema/registry.json",
   name: "dither-kit",
   homepage: HOMEPAGE,
@@ -168,20 +218,22 @@ const nsRegistry = {
     type: "registry:component",
     title: it.title,
     description: it.description,
+    categories: it.categories,
+    version: VERSION,
     dependencies: it.dependencies,
-    registryDependencies: it.registryDependencies,
+    registryDependencies: it.registryDependencies.map(depUrl),
     files: it.files.map((name) => ({
       path: `${TARGET_DIR}/${name}`,
       type: "registry:component",
       target: `${TARGET_DIR}/${name}`,
     })),
   })),
-}
+})
 writeFileSync(join(OUT, "registry.json"), `${JSON.stringify(nsRegistry, null, 2)}\n`)
 
 // Repo-root registry — powers the zero-config GitHub shorthand. No inline
-// content (the CLI reads sources from the repo); deps use owner/repo/<item>.
-const githubRegistry = {
+// content (shadcn reads sources from the repo); deps use owner/repo/<item>.
+const githubRegistry = RegistrySchema.parse({
   $schema: "https://ui.shadcn.com/schema/registry.json",
   name: "dither-kit",
   homepage: HOMEPAGE,
@@ -190,20 +242,20 @@ const githubRegistry = {
     type: "registry:component",
     title: it.title,
     description: it.description,
+    categories: it.categories,
+    version: VERSION,
     dependencies: it.dependencies,
-    registryDependencies: it.registryDependencies.map((d) =>
-      d.replace(`${NS}/`, `${REPO}/`)
-    ),
+    registryDependencies: it.registryDependencies.map((d) => d.replace(`${NS}/`, `${REPO}/`)),
     files: it.files.map((name) => ({
       path: `${SRC_REL}/${name}`,
       type: "registry:component",
       target: `${TARGET_DIR}/${name}`,
     })),
   })),
-}
+})
 writeFileSync(join(ROOT, "registry.json"), `${JSON.stringify(githubRegistry, null, 2)}\n`)
 
 const total = ITEMS.reduce((n, it) => n + it.files.length, 0)
 console.log(
-  `registry: wrote ${ITEMS.length} items (${total} file refs) → r/{${ITEMS.map((i) => i.name).join(",")}}.json + r/registry.json + registry.json`
+  `registry: wrote ${ITEMS.length} items (${total} file refs) → r/{${ITEMS.map((i) => i.name).join(",")}}.json + r/registry.json + registry.json`,
 )

@@ -5,10 +5,14 @@
   "title": "Dither Pie / Donut Chart",
   "description": "Composable dithered pie / donut chart — per-pixel radial dither, clockwise sweep-in, slice hover-pop, and colour bloom. Inspired by Evil Charts (evilcharts.com).",
   "author": "ripgrim",
+  "categories": [
+    "charts"
+  ],
+  "version": "0.1.0",
   "dependencies": [],
   "devDependencies": [],
   "registryDependencies": [
-    "@dither-kit/core"
+    "https://tripwire.sh/r/core.json"
   ],
   "files": [
     {

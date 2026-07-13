@@ -5,6 +5,10 @@
   "title": "Dither Kit — Core",
   "description": "Shared engine for Dither Kit: contexts, d3 scales, the ordered-dither canvas painter, the canvas-agnostic chart shells, and the legend/tooltip/grid/axes/dot chrome. Installed automatically by every chart.",
   "author": "ripgrim",
+  "categories": [
+    "core"
+  ],
+  "version": "0.1.0",
   "dependencies": [
     "motion",
     "d3-scale",

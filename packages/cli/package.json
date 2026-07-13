@@ -1,0 +1,56 @@
+{
+  "name": "@dither-kit/cli",
+  "version": "0.1.0",
+  "description": "The Dither Kit installer — add composable dithered charts to your shadcn/ui project, with a lockfile so you can update and diff them later.",
+  "keywords": [
+    "dither-kit",
+    "shadcn",
+    "charts",
+    "dither",
+    "cli",
+    "registry"
+  ],
+  "homepage": "https://tripwire.sh/dither-kit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Boring-Software-Inc/dither-kit.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/Boring-Software-Inc/dither-kit/issues"
+  },
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "dither-kit": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "@dither-kit/registry-core": "^0.1.0",
+    "commander": "^12.1.0",
+    "picocolors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

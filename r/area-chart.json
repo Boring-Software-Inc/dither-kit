@@ -5,10 +5,14 @@
   "title": "Dither Area & Line Chart",
   "description": "Composable dithered area + line charts — children-as-config API with the ordered-dither fill, winking sparkles, a gliding scrub tooltip, selection, and colour bloom. Includes Sparkline. Inspired by Evil Charts (evilcharts.com).",
   "author": "ripgrim",
+  "categories": [
+    "charts"
+  ],
+  "version": "0.1.0",
   "dependencies": [],
   "devDependencies": [],
   "registryDependencies": [
-    "@dither-kit/core"
+    "https://tripwire.sh/r/core.json"
   ],
   "files": [
     {
