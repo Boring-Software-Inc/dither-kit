@@ -7,6 +7,7 @@ export {
 } from "./avatar"
 export { Bar, type BarProps } from "./bar"
 export { BarChart } from "./bar-chart"
+export { BlockLegend } from "./block-legend"
 export {
   type ButtonVariant,
   DitherButton,
@@ -41,6 +42,7 @@ export { Pie, type PieProps } from "./pie"
 export { PieChart, type PieChartProps } from "./pie-chart"
 export { Radar, type RadarProps } from "./radar"
 export { RadarChart, type RadarChartProps } from "./radar-chart"
+export { ReferenceLine } from "./reference-line"
 export type { StackType } from "./scales"
 export { Sparkline, type SparklineProps } from "./sparkline"
 export { Tooltip, type TooltipVariant } from "./tooltip"

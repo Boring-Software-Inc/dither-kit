@@ -68,6 +68,7 @@ export type ChartContextValue = {
   y: ScaleLinear<number, number> // value → px within the plot
   bands: Record<string, [number, number][]> // per-series [y0, y1] per row
   max: number
+  min: number // most-negative value (0 when nothing dips below the baseline)
 
   // Interaction state, shared by every part.
   selectedDataKey: string | null
@@ -295,7 +296,7 @@ export function useChartController({
   // Memoized: the priciest derivation in the render path — it walks every
   // row × series to build the stack bands. Hover/cursor state changes must not
   // recompute it, only a real data/series/stack change.
-  const { bands, max } = useMemo(
+  const { bands, max, min } = useMemo(
     () => computeBands(data, configKeys, stackType),
     [data, configKeys, stackType]
   )
@@ -341,7 +342,10 @@ export function useChartController({
     },
     [xCenter, stacked, bandwidth]
   )
-  const y = useMemo(() => buildYScale(max, plotHeight), [max, plotHeight])
+  const y = useMemo(
+    () => buildYScale(min, max, plotHeight),
+    [min, max, plotHeight]
+  )
 
   // Stable so `common` and the value stay stable; re-created only on config.
   const seedOf = useCallback(
@@ -433,6 +437,7 @@ export function useChartController({
       y,
       bands,
       max,
+      min,
       selectedDataKey,
       selectDataKey,
       focusDataKey,
@@ -475,6 +480,7 @@ export function useChartController({
       y,
       bands,
       max,
+      min,
       selectedDataKey,
       selectDataKey,
       focusDataKey,

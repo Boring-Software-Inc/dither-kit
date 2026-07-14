@@ -103,7 +103,12 @@ export function BarCanvas() {
         for (let i = 0; i < s.dataLength; i++) {
           const bp = barProgress(i, s.dataLength, prog)
           const base = t.base[i] ?? rows - 1
-          const top = base + ((t.top[i] ?? base) - base) * bp
+          const grown = base + ((t.top[i] ?? base) - base) * bp
+          // Bars grow from the zero baseline toward the value. Positive values
+          // sit above the baseline (smaller pixel), negative ones below it —
+          // paintColumn wants the higher edge first, so order the pair.
+          const top = Math.min(grown, base)
+          const bottom = Math.max(grown, base)
           const active = s.hoverIndex === i
           const hoverDim =
             s.hoverIndex != null && !active && s.isMouseInChart ? 0.5 : 1
@@ -111,7 +116,7 @@ export function BarCanvas() {
           const c0 = Math.round(slot.x * fx)
           const c1 = Math.round((slot.x + slot.width) * fx)
           for (let x = c0; x < c1; x++) {
-            paintColumn(c, x, top, base, seed, {
+            paintColumn(c, x, top, bottom, seed, {
               variant,
               intensity: intensity + (active ? 0.4 : 0),
               dim: selDim * hoverDim,

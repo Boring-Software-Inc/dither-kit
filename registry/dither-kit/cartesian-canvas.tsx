@@ -86,7 +86,12 @@ function startCartesianLoop({
       const sparse = stacked ? 0 : si * 0.14
       for (let x = 0; x < cols; x++) {
         if (x > revealCols) break
-        paintColumn(octx, x, cur.top[x] ?? 0, cur.floor[x] ?? 0, seed, {
+        // For a value that dips below the zero baseline the value line ends up
+        // *below* the floor in pixels; paintColumn needs the higher edge first,
+        // so order the pair (a no-op for the common positive case).
+        const a = cur.top[x] ?? 0
+        const b = cur.floor[x] ?? 0
+        paintColumn(octx, x, Math.min(a, b), Math.max(a, b), seed, {
           variant,
           intensity,
           dim,

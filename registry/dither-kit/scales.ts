@@ -13,26 +13,35 @@ const num = (v: unknown) =>
 
 /**
  * Per-series [y0, y1] bands for every row. For `default` every series sits on
- * the floor (y0 = 0); for `stacked`/`percent` they pile on top of each other
- * via d3's stack layout. The shape `bands[key][i] = [y0, y1]` is what both the
- * SVG area paths and the canvas overlay read from.
+ * the zero baseline (y0 = 0), so a negative value yields `[0, v]` with `v < 0`
+ * and draws below the baseline; for `stacked`/`percent` they pile on top of
+ * each other via d3's stack layout (which splits negatives below zero). The
+ * shape `bands[key][i] = [y0, y1]` is what both the SVG area paths and the
+ * canvas overlay read from. `max`/`min` bound the value range so the y-scale
+ * can span a diverging (below-zero) domain.
  */
 export function computeBands(
   data: Row[],
   keys: string[],
   stackType: StackType
-): { bands: Record<string, [number, number][]>; max: number } {
+): { bands: Record<string, [number, number][]>; max: number; min: number } {
   if (stackType === "default") {
     const bands: Record<string, [number, number][]> = {}
     let max = 0
+    let min = 0
     for (const key of keys) {
       bands[key] = data.map((row) => {
         const v = num(row[key])
         if (v > max) max = v
+        if (v < min) min = v
         return [0, v]
       })
     }
-    return { bands: bands, max: max || 1 }
+    // Only fall back to a unit span when there's no range at all (empty /
+    // all-zero) — a purely negative series keeps max = 0 so the baseline
+    // stays pinned to the top of the plot.
+    const flat = max === 0 && min === 0
+    return { bands, max: flat ? 1 : max, min }
   }
 
   const series = d3Stack<Row>()
@@ -44,13 +53,16 @@ export function computeBands(
 
   const bands: Record<string, [number, number][]> = {}
   let max = 0
+  let min = 0
   series.forEach((layer) => {
     bands[layer.key] = layer.map((point) => {
       if (point[1] > max) max = point[1]
+      if (point[0] < min) min = point[0]
       return [point[0], point[1]]
     })
   })
-  return { bands, max: max || 1 }
+  const flat = max === 0 && min === 0
+  return { bands, max: flat ? 1 : max, min }
 }
 
 /** x positions for each row index, evenly spread across the plot width. */
@@ -76,9 +88,20 @@ export function indexAtBand(px: number, length: number, plotWidth: number) {
   return Math.min(length - 1, Math.floor(t * length))
 }
 
-/** value → vertical pixel, with the floor at the bottom of the plot. */
-export function buildYScale(max: number, plotHeight: number) {
-  return scaleLinear().domain([0, max]).nice().range([plotHeight, 0])
+/**
+ * value → vertical pixel. The domain always includes zero, so charts with only
+ * positive values keep a floor at the plot bottom, while diverging data (values
+ * below zero) draws below a zero baseline that sits somewhere inside the plot.
+ */
+export function buildYScale(min: number, max: number, plotHeight: number) {
+  const lo = Math.min(0, min)
+  const hi = Math.max(0, max)
+  // Guard a degenerate (zero-width) domain so `nice()` and the range map stay
+  // finite even when every value is exactly zero.
+  return scaleLinear()
+    .domain([lo, hi === lo ? lo + 1 : hi])
+    .nice()
+    .range([plotHeight, 0])
 }
 
 /** Index of the row nearest a horizontal pixel offset within the plot. */

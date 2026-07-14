@@ -88,6 +88,11 @@
           "target": "components/dither-kit/grid.tsx"
         },
         {
+          "path": "registry/dither-kit/reference-line.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/reference-line.tsx"
+        },
+        {
           "path": "registry/dither-kit/x-axis.tsx",
           "type": "registry:component",
           "target": "components/dither-kit/x-axis.tsx"
@@ -106,6 +111,11 @@
           "path": "registry/dither-kit/legend.tsx",
           "type": "registry:component",
           "target": "components/dither-kit/legend.tsx"
+        },
+        {
+          "path": "registry/dither-kit/block-legend.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/block-legend.tsx"
         },
         {
           "path": "registry/dither-kit/tooltip.tsx",

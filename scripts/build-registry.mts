@@ -88,10 +88,12 @@ const CORE_FILES = [
   "cartesian-root.tsx",
   "polar-root.tsx",
   "grid.tsx",
+  "reference-line.tsx",
   "x-axis.tsx",
   "y-axis.tsx",
   "dot.tsx",
   "legend.tsx",
+  "block-legend.tsx",
   "tooltip.tsx",
 ]
 

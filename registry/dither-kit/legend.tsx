@@ -5,7 +5,12 @@ import { cn } from "./lib"
 import { rgb } from "./palette"
 
 /** Series/slice legend. With `isClickable`, each entry toggles its selection.
- * Works in every chart family via the shared common context. */
+ * Works in every chart family via the shared common context.
+ *
+ * Note: this is an absolute overlay pinned to the top of the plot, so it's best
+ * for ≤2–3 entries. With more entries (or a narrow container) it wraps onto
+ * extra rows that overlay the chart — reach for the in-flow `<BlockLegend>`
+ * instead, which renders as a sibling and can't overlap at any width. */
 export function Legend({
   isClickable = false,
   align = "right",
