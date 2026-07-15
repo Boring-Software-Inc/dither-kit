@@ -194,6 +194,70 @@
       ]
     },
     {
+      "name": "scatter-chart",
+      "type": "registry:component",
+      "title": "Dither Scatter Chart",
+      "description": "Composable dithered scatter chart with numeric axes, point labels, nearest-point hover, selection, and colour bloom.",
+      "categories": [
+        "charts"
+      ],
+      "version": "0.1.0",
+      "dependencies": [],
+      "devDependencies": [],
+      "registryDependencies": [
+        "https://tripwire.sh/r/core.json"
+      ],
+      "files": [
+        {
+          "path": "components/dither-kit/scatter-chart.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/scatter-chart.tsx"
+        },
+        {
+          "path": "components/dither-kit/scatter-canvas.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/scatter-canvas.tsx"
+        },
+        {
+          "path": "components/dither-kit/scatter.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/scatter.tsx"
+        }
+      ]
+    },
+    {
+      "name": "range-chart",
+      "type": "registry:component",
+      "title": "Dither Range Chart",
+      "description": "Composable horizontal low/value/high range chart for confidence intervals and comparable estimates.",
+      "categories": [
+        "charts"
+      ],
+      "version": "0.1.0",
+      "dependencies": [],
+      "devDependencies": [],
+      "registryDependencies": [
+        "https://tripwire.sh/r/core.json"
+      ],
+      "files": [
+        {
+          "path": "components/dither-kit/range-chart.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/range-chart.tsx"
+        },
+        {
+          "path": "components/dither-kit/range-canvas.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/range-canvas.tsx"
+        },
+        {
+          "path": "components/dither-kit/range.tsx",
+          "type": "registry:component",
+          "target": "components/dither-kit/range.tsx"
+        }
+      ]
+    },
+    {
       "name": "pie-chart",
       "type": "registry:component",
       "title": "Dither Pie / Donut Chart",
@@ -380,7 +444,7 @@
       "name": "dither-kit",
       "type": "registry:component",
       "title": "Dither Kit — Everything",
-      "description": "All of Dither Kit: area, line, bar, pie, and radar dithered charts on one tiny canvas engine, plus generative dithered avatars, buttons, and gradient washes. Inspired by Evil Charts (evilcharts.com).",
+      "description": "All of Dither Kit: area, line, bar, scatter, range, pie, and radar dithered charts on one tiny canvas engine, plus generative dithered avatars, buttons, and gradient washes. Inspired by Evil Charts (evilcharts.com).",
       "categories": [
         "charts"
       ],
@@ -390,6 +454,8 @@
       "registryDependencies": [
         "https://tripwire.sh/r/area-chart.json",
         "https://tripwire.sh/r/bar-chart.json",
+        "https://tripwire.sh/r/scatter-chart.json",
+        "https://tripwire.sh/r/range-chart.json",
         "https://tripwire.sh/r/pie-chart.json",
         "https://tripwire.sh/r/radar-chart.json",
         "https://tripwire.sh/r/avatar.json",

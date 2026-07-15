@@ -98,6 +98,92 @@ export function paintColumn(
   }
 }
 
+/** Horizontal counterpart to {@link paintColumn}, used by horizontal bars. */
+export function paintRow(
+  octx: CanvasRenderingContext2D,
+  y: number,
+  left: number,
+  right: number,
+  seed: Seed,
+  { variant, intensity, dim, stacked, sparse = 0 }: PaintOpts
+) {
+  const l = Math.round(left)
+  const r = Math.round(right)
+  const depth = r - l
+  if (depth <= 0) return
+  const bias = (variant === "dotted" ? 0.12 : 0) + (stacked ? 0.2 : 0) - sparse
+  for (let x = l; x < r; x++) {
+    let density = (r - x) / depth
+    if (stacked) density = 0.5 + 0.5 * density
+    if (variant === "hatched" && ((x + y) & 3) >= 2) continue
+    const lit =
+      variant === "solid" ||
+      density > BAYER[y & 3][x & 3] - 0.1 * intensity - bias
+    if (variant === "dotted" && !lit) continue
+    const k = (0.3 + density * 0.7) * (1 + 0.22 * intensity)
+    octx.fillStyle = rgb(seed.fill, 1, clamp01((lit ? k : k * OFF_TIER) * dim))
+    octx.fillRect(x, y, 1, 1)
+  }
+  octx.fillStyle = rgb(seed.fill, 1, BORDER_ALPHA * dim)
+  octx.fillRect(r - 1, y, 1, 1)
+}
+
+/** Ordered-dither disc used by scatter points and range markers. */
+export function paintDisc(
+  octx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number,
+  seed: Seed,
+  variant: AreaVariant,
+  dim = 1,
+  intensity = 0
+) {
+  const r = Math.max(1, radius)
+  const x0 = Math.floor(cx - r)
+  const x1 = Math.ceil(cx + r)
+  const y0 = Math.floor(cy - r)
+  const y1 = Math.ceil(cy + r)
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      const distance = Math.hypot(x - cx, y - cy)
+      if (distance > r) continue
+      const density = 1 - distance / r
+      if (variant === "hatched" && ((x + y) & 3) >= 2) continue
+      const lit =
+        variant === "solid" ||
+        density + intensity * 0.12 > BAYER[y & 3][x & 3]
+      if (variant === "dotted" && !lit) continue
+      octx.fillStyle = rgb(
+        seed.fill,
+        1,
+        clamp01((lit ? 0.95 : OFF_TIER) * dim)
+      )
+      octx.fillRect(x, y, 1, 1)
+    }
+  }
+}
+
+/** Pixelated interval line with endpoint caps for range charts. */
+export function paintInterval(
+  octx: CanvasRenderingContext2D,
+  left: number,
+  right: number,
+  y: number,
+  seed: Seed,
+  dim = 1
+) {
+  const l = Math.round(Math.min(left, right))
+  const r = Math.round(Math.max(left, right))
+  const cy = Math.round(y)
+  octx.fillStyle = rgb(seed.fill, 1, 0.72 * dim)
+  for (let x = l; x <= r; x++) {
+    if (BAYER[cy & 3][x & 3] < 0.75) octx.fillRect(x, cy, 1, 1)
+  }
+  octx.fillRect(l, cy - 2, 1, 5)
+  octx.fillRect(r, cy - 2, 1, 5)
+}
+
 /** Linear-resample a per-index fraction array to `cols` columns. */
 export function resample(src: number[], cols: number): number[] {
   const out = new Array<number>(cols)

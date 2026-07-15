@@ -43,6 +43,10 @@ import { PieChart } from "../registry/dither-kit/pie-chart"
 import { usePolarChart } from "../registry/dither-kit/polar-context"
 import { Radar } from "../registry/dither-kit/radar"
 import { RadarChart } from "../registry/dither-kit/radar-chart"
+import { Range } from "../registry/dither-kit/range"
+import { RangeChart } from "../registry/dither-kit/range-chart"
+import { Scatter } from "../registry/dither-kit/scatter"
+import { ScatterChart } from "../registry/dither-kit/scatter-chart"
 import { Sparkline } from "../registry/dither-kit/sparkline"
 
 // Tell React this is an act() environment so manual act(...) calls below flush
@@ -117,6 +121,35 @@ describe("charts mount without React Compiler (#2)", () => {
     )
   })
 
+  it("horizontal BarChart mounts without an update-depth loop", () => {
+    mountsCleanly(
+      <BarChart data={data} config={config} layout="horizontal">
+        <Bar dataKey="desktop" />
+      </BarChart>
+    )
+  })
+
+  it("ScatterChart mounts without an update-depth loop", () => {
+    mountsCleanly(
+      <ScatterChart data={data} config={config} xKey="desktop">
+        <Scatter dataKey="desktop" labelKey="month" />
+      </ScatterChart>
+    )
+  })
+
+  it("RangeChart mounts without an update-depth loop", () => {
+    const ranges = data.map((row) => ({
+      ...row,
+      low: row.desktop - 10,
+      high: row.desktop + 10,
+    }))
+    mountsCleanly(
+      <RangeChart data={ranges} config={config} categoryKey="month">
+        <Range dataKey="desktop" lowKey="low" highKey="high" />
+      </RangeChart>
+    )
+  })
+
   it("PieChart mounts without an update-depth loop", () => {
     mountsCleanly(
       <PieChart data={data} config={pieConfig} dataKey="desktop" nameKey="month">
@@ -135,6 +168,69 @@ describe("charts mount without React Compiler (#2)", () => {
 
   it("Sparkline mounts without an update-depth loop", () => {
     mountsCleanly(<Sparkline data={[3, 7, 5, 9, 8, 12]} color="blue" />)
+  })
+})
+
+describe("cartesian extensions", () => {
+  it("range auto-domain ignores unrelated numeric fields", () => {
+    const captured = { current: [0, 1] }
+
+    function DomainProbe() {
+      captured.current = useChart().x.domain()
+      return null
+    }
+
+    act(() => {
+      render(
+        <RangeChart
+          data={[
+            { model: "A", mean: 0.5, low: 0.4, high: 0.6, count: 10_000 },
+          ]}
+          config={{ mean: { label: "Mean", color: "blue" } }}
+          categoryKey="model"
+          animate={false}
+        >
+          <Range dataKey="mean" lowKey="low" highKey="high" />
+          <DomainProbe />
+        </RangeChart>
+      )
+    })
+
+    expect(captured.current[1]).toBeLessThan(1)
+  })
+
+  it("scatter hit-testing considers every configured series", () => {
+    const hit = { current: -1 }
+
+    function HitProbe() {
+      hit.current = useChart().indexAtPoint(0, 0)
+      return null
+    }
+
+    act(() => {
+      render(
+        <ScatterChart
+          data={[
+            { x: 0, a: 0, b: 1 },
+            { x: 0, a: 1, b: 0 },
+          ]}
+          config={{
+            a: { color: "blue" },
+            b: { color: "pink" },
+          }}
+          xKey="x"
+          xDomain={[0, 1]}
+          yDomain={[0, 1]}
+          animate={false}
+        >
+          <Scatter dataKey="a" />
+          <Scatter dataKey="b" />
+          <HitProbe />
+        </ScatterChart>
+      )
+    })
+
+    expect(hit.current).toBe(0)
   })
 })
 

@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from "react"
 import {
+  type CartesianLayout,
   type ChartConfig,
   ChartContext,
   type ChartType,
@@ -16,7 +17,7 @@ import {
 import { CommonChartContext } from "./common-context"
 import type { BloomInput } from "./dither-paint"
 import { cn } from "./lib"
-import type { StackType } from "./scales"
+import type { NumericDomain, StackType } from "./scales"
 import { useChartDimensions } from "./use-chart-dimensions"
 
 // `object` rather than `Record<string, unknown>`: interfaces don't get an
@@ -38,6 +39,7 @@ export type CartesianChartProps<TData extends Row> = {
   stackType?: StackType
   margins?: Partial<Margins>
   className?: string
+  ariaLabel?: string
   animate?: boolean
   animationDuration?: number
   replayToken?: number // change to re-play the entrance without remounting
@@ -81,8 +83,14 @@ export function CartesianRoot<TData extends Row>({
   config,
   children,
   stackType = "default",
+  layout = "vertical",
+  xKey,
+  categoryKey,
+  xDomain,
+  yDomain,
   margins: marginsProp,
   className,
+  ariaLabel = "Chart",
   animate = true,
   animationDuration = 900,
   replayToken = 0,
@@ -97,6 +105,11 @@ export function CartesianRoot<TData extends Row>({
 }: CartesianChartProps<TData> & {
   chartType: ChartType
   Canvas: ComponentType
+  layout?: CartesianLayout
+  xKey?: string
+  categoryKey?: string
+  xDomain?: NumericDomain
+  yDomain?: NumericDomain
 }) {
   const { ref, size } = useChartDimensions<HTMLDivElement>()
   const margins = { ...DEFAULT_MARGINS, ...marginsProp }
@@ -107,6 +120,11 @@ export function CartesianRoot<TData extends Row>({
     data: data as Record<string, unknown>[],
     config,
     stackType,
+    layout,
+    xKey,
+    categoryKey,
+    xDomain,
+    yDomain,
     dimensions: size,
     margins,
     animate,
@@ -130,12 +148,13 @@ export function CartesianRoot<TData extends Row>({
     else svgChildren.push(child)
   })
 
-  const onMove = (clientX: number) => {
+  const onMove = (clientX: number, clientY: number) => {
     const el = ref.current
     if (!el) return
     const rect = el.getBoundingClientRect()
     const px = clientX - rect.left - margins.left
-    const index = ctx.indexAtX(px)
+    const py = clientY - rect.top - margins.top
+    const index = ctx.indexAtPoint(px, py)
     ctx.setHoverIndex(index)
     ctx.setCursorX(clientX - rect.left)
     onHoverChange?.(index)
@@ -148,7 +167,9 @@ export function CartesianRoot<TData extends Row>({
           ref={ref}
           className={cn("relative h-full w-full", className)}
           onPointerEnter={() => ctx.setMouseInChart(true)}
-          onPointerMove={interactive ? (e) => onMove(e.clientX) : undefined}
+          onPointerMove={
+            interactive ? (e) => onMove(e.clientX, e.clientY) : undefined
+          }
           onPointerLeave={() => {
             ctx.setMouseInChart(false)
             ctx.setHoverIndex(null)
@@ -175,7 +196,7 @@ export function CartesianRoot<TData extends Row>({
               height={size.height}
               className="absolute inset-0 overflow-visible"
               role="img"
-              aria-label="Chart"
+              aria-label={ariaLabel}
             >
               <g transform={`translate(${margins.left},${margins.top})`}>
                 {svgChildren}

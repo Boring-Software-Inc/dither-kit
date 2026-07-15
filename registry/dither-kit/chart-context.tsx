@@ -8,17 +8,30 @@ import type { DitherColor, Seed } from "./palette"
 import { seedOfColor } from "./palette"
 import {
   buildBandScale,
+  buildValueScale,
   buildXScale,
   buildYScale,
   computeBands,
+  horizontalBarRect,
   indexAtBand,
   nearestIndex,
+  nearestPointIndex,
+  type NumericDomain,
   type StackType,
 } from "./scales"
 import type { Dimensions } from "./use-chart-dimensions"
 
 /** Which chart root a part is composed under — drives the boundary guards. */
-export type ChartType = "area" | "bar" | "line" | "pie" | "radar"
+export type ChartType =
+  | "area"
+  | "bar"
+  | "line"
+  | "pie"
+  | "radar"
+  | "range"
+  | "scatter"
+
+export type CartesianLayout = "vertical" | "horizontal"
 
 export type ChartConfig = Record<string, { label?: string; color: DitherColor }>
 
@@ -33,7 +46,7 @@ type Row = Record<string, unknown>
 
 export type AreaVariant = "gradient" | "dotted" | "hatched" | "solid"
 export type StrokeVariant = "solid" | "dashed"
-export type SeriesKind = "area" | "line" | "bar"
+export type SeriesKind = "area" | "line" | "bar" | "range" | "scatter"
 
 /** What each series part (<Area />, <Line />, <Bar />) registers so the canvas
  * knows which series to paint and how. */
@@ -42,6 +55,10 @@ export type SeriesSpec = {
   kind: SeriesKind
   variant: AreaVariant
   strokeVariant: StrokeVariant
+  lowKey?: string
+  highKey?: string
+  labelKey?: string
+  radius?: number
 }
 
 export type ChartContextValue = {
@@ -51,20 +68,32 @@ export type ChartContextValue = {
   data: Row[]
   dataLength: number
   stackType: StackType
+  layout: CartesianLayout
+  xKey?: string
+  categoryKey?: string
 
   margins: Margins
   plot: { width: number; height: number } // inner drawing area
   ready: boolean // true once measured (width > 0)
 
+  x: ScaleLinear<number, number> // numeric value → horizontal px
   xCenter: (index: number) => number // category centre px within the plot
+  yCenter: (index: number) => number // horizontal-layout category centre
   bandwidth: number // category slot width (0 for point/area scales)
   indexAtX: (px: number) => number // nearest category for a pointer x
+  indexAtPoint: (px: number, py: number) => number
   // Bar geometry in plot px — one source of truth for the canvas + click rects.
   barSlot: (
     index: number,
     seriesIndex: number,
     seriesCount: number
   ) => { x: number; width: number }
+  barRect: (
+    index: number,
+    seriesIndex: number,
+    seriesCount: number,
+    band: [number, number]
+  ) => { x: number; y: number; width: number; height: number }
   y: ScaleLinear<number, number> // value → px within the plot
   bands: Record<string, [number, number][]> // per-series [y0, y1] per row
   max: number
@@ -113,6 +142,8 @@ const ROOT_OF: Record<ChartType, string> = {
   line: "<LineChart />",
   pie: "<PieChart />",
   radar: "<RadarChart />",
+  range: "<RangeChart />",
+  scatter: "<ScatterChart />",
 }
 
 /** Generic accessor for internal layers (canvas/overlay) that work for any root. */
@@ -182,6 +213,11 @@ export function useChartController({
   data,
   config,
   stackType,
+  layout = "vertical",
+  xKey,
+  categoryKey,
+  xDomain,
+  yDomain,
   dimensions,
   margins,
   animate = true,
@@ -198,6 +234,11 @@ export function useChartController({
   data: Row[]
   config: ChartConfig
   stackType: StackType
+  layout?: CartesianLayout
+  xKey?: string
+  categoryKey?: string
+  xDomain?: NumericDomain
+  yDomain?: NumericDomain
   dimensions: Dimensions
   margins: Margins
   animate?: boolean
@@ -241,7 +282,11 @@ export function useChartController({
       return cur &&
         cur.kind === spec.kind &&
         cur.variant === spec.variant &&
-        cur.strokeVariant === spec.strokeVariant
+        cur.strokeVariant === spec.strokeVariant &&
+        cur.lowKey === spec.lowKey &&
+        cur.highKey === spec.highKey &&
+        cur.labelKey === spec.labelKey &&
+        cur.radius === spec.radius
         ? prev
         : { ...prev, [spec.dataKey]: spec }
     })
@@ -302,9 +347,11 @@ export function useChartController({
   )
 
   const isBar = chartType === "bar"
-  // The d3 scale factories are memoized so `y` keeps a stable identity: the
-  // canvas `targets` memo (cartesian-canvas / bar-canvas) deps on ctx.y, and
-  // xCenter/indexAtX/barSlot below close over these.
+  const isScatter = chartType === "scatter"
+  const isRange = chartType === "range"
+  const horizontal = layout === "horizontal"
+
+  // Keep scale identities stable across hover/cursor renders.
   const xPoint = useMemo(
     () => buildXScale(data.length, plotWidth),
     [data.length, plotWidth]
@@ -313,18 +360,132 @@ export function useChartController({
     () => buildBandScale(data.length, plotWidth),
     [data.length, plotWidth]
   )
-  const bandwidth = isBar ? xBand.bandwidth() : 0
+  const yBand = useMemo(
+    () => buildBandScale(data.length, plotHeight),
+    [data.length, plotHeight]
+  )
+  const stableXDomain = useMemo<NumericDomain | undefined>(
+    () => (xDomain ? [xDomain[0], xDomain[1]] : undefined),
+    [xDomain?.[0], xDomain?.[1]]
+  )
+  const stableYDomain = useMemo<NumericDomain | undefined>(
+    () => (yDomain ? [yDomain[0], yDomain[1]] : undefined),
+    [yDomain?.[0], yDomain?.[1]]
+  )
+  const rangeValueKeys = useMemo(
+    () =>
+      [...new Set(
+        Object.values(seriesSpecs).flatMap((spec) =>
+          spec.kind === "range" && spec.lowKey && spec.highKey
+            ? [spec.lowKey, spec.dataKey, spec.highKey]
+            : []
+        )
+      )],
+    [seriesSpecs]
+  )
+  const xValues = useMemo(() => {
+    if (isScatter && xKey) {
+      return data
+        .map((row) => row[xKey])
+        .filter(
+          (value): value is number =>
+            typeof value === "number" && Number.isFinite(value)
+        )
+    }
+    if (isRange) {
+      return data.flatMap((row) =>
+        rangeValueKeys
+          .map((key) => row[key])
+          .filter(
+            (value): value is number =>
+              typeof value === "number" && Number.isFinite(value)
+          )
+      )
+    }
+    return [min, max]
+  }, [isScatter, isRange, xKey, data, rangeValueKeys, min, max])
+  const yValues = useMemo(
+    () =>
+      data.flatMap((row) =>
+        configKeys
+          .map((key) => row[key])
+          .filter(
+            (value): value is number =>
+              typeof value === "number" && Number.isFinite(value)
+          )
+      ),
+    [data, configKeys]
+  )
+  const x = useMemo(
+    () =>
+      buildValueScale(
+        xValues,
+        plotWidth,
+        stableXDomain,
+        false,
+        horizontal && isBar
+      ),
+    [xValues, plotWidth, stableXDomain, horizontal, isBar]
+  )
+  const y = useMemo(
+    () =>
+      isScatter
+        ? buildValueScale(yValues, plotHeight, stableYDomain, true)
+        : buildYScale(min, max, plotHeight),
+    [isScatter, yValues, min, max, plotHeight, stableYDomain]
+  )
+  const bandwidth = horizontal
+    ? yBand.bandwidth()
+    : isBar
+      ? xBand.bandwidth()
+      : 0
   const xCenter = useCallback(
-    (i: number) =>
-      isBar ? (xBand(i) ?? 0) + xBand.bandwidth() / 2 : (xPoint(i) ?? 0),
-    [isBar, xBand, xPoint]
+    (i: number) => {
+      if (isScatter && xKey) {
+        const value = data[i]?.[xKey]
+        return x(typeof value === "number" ? value : 0)
+      }
+      return isBar
+        ? (xBand(i) ?? 0) + xBand.bandwidth() / 2
+        : (xPoint(i) ?? 0)
+    },
+    [isScatter, xKey, x, data, isBar, xBand, xPoint]
+  )
+  const yCenter = useCallback(
+    (i: number) => (yBand(i) ?? 0) + yBand.bandwidth() / 2,
+    [yBand]
   )
   const indexAtX = useCallback(
     (px: number) =>
-      isBar
+      isBar && !horizontal
         ? indexAtBand(px, data.length, plotWidth)
         : nearestIndex(px, data.length, plotWidth),
-    [isBar, data.length, plotWidth]
+    [isBar, horizontal, data.length, plotWidth]
+  )
+  const scatterPoints = useMemo(
+    () =>
+      isScatter && xKey
+        ? data.flatMap((row, index) => {
+            const xv = row[xKey]
+            if (typeof xv !== "number" || !Number.isFinite(xv)) return []
+            return configKeys.flatMap((key) => {
+              const yv = row[key]
+              return typeof yv === "number" && Number.isFinite(yv)
+                ? [{ x: x(xv), y: y(yv), index }]
+                : []
+            })
+          })
+        : [],
+    [isScatter, xKey, data, configKeys, x, y]
+  )
+  const indexAtPoint = useCallback(
+    (px: number, py: number) => {
+      if (horizontal) return indexAtBand(py, data.length, plotHeight)
+      if (!isScatter) return indexAtX(px)
+      const nearest = nearestPointIndex(scatterPoints, px, py)
+      return scatterPoints[nearest]?.index ?? 0
+    },
+    [horizontal, data.length, plotHeight, isScatter, indexAtX, scatterPoints]
   )
   const stacked = stackType === "stacked" || stackType === "percent"
   const barSlot = useCallback(
@@ -342,9 +503,31 @@ export function useChartController({
     },
     [xCenter, stacked, bandwidth]
   )
-  const y = useMemo(
-    () => buildYScale(min, max, plotHeight),
-    [min, max, plotHeight]
+  const barRect = useCallback(
+    (i: number, si: number, n: number, band: [number, number]) => {
+      if (horizontal) {
+        return horizontalBarRect({
+          center: yCenter(i),
+          bandwidth,
+          start: band[0],
+          end: band[1],
+          seriesIndex: si,
+          seriesCount: n,
+          stacked,
+          valueToPx: x,
+        })
+      }
+      const slot = barSlot(i, si, n)
+      const top = y(band[1])
+      const base = y(band[0])
+      return {
+        x: slot.x,
+        y: Math.min(top, base),
+        width: slot.width,
+        height: Math.abs(base - top),
+      }
+    },
+    [horizontal, yCenter, bandwidth, stacked, x, barSlot, y]
   )
 
   // Stable so `common` and the value stay stable; re-created only on config.
@@ -352,6 +535,31 @@ export function useChartController({
     (key: string) => seedOfColor(config[key]?.color ?? "grey"),
     [config]
   )
+
+  const tooltipNames = useMemo(() => {
+    if (isRange) {
+      return [...new Set(
+        Object.values(seriesSpecs).flatMap((spec) =>
+          spec.kind === "range" && spec.lowKey && spec.highKey
+            ? [spec.lowKey, spec.dataKey, spec.highKey]
+            : []
+        )
+      )]
+    }
+    return isScatter && xKey
+      ? [...new Set([xKey, ...configKeys])]
+      : configKeys
+  }, [isRange, isScatter, xKey, configKeys, seriesSpecs])
+
+  const tooltipOwner = useMemo(() => {
+    const owners: Record<string, string> = {}
+    for (const spec of Object.values(seriesSpecs)) {
+      owners[spec.dataKey] = spec.dataKey
+      if (spec.lowKey) owners[spec.lowKey] = spec.dataKey
+      if (spec.highKey) owners[spec.highKey] = spec.dataKey
+    }
+    return owners
+  }, [seriesSpecs])
 
   // Memoized: this is the value handed to CommonChartContext (Legend/Tooltip),
   // so it needs its own stable identity independent of the parent value.
@@ -371,10 +579,13 @@ export function useChartController({
     tooltipTop: (() => {
       const floor = mTop + 44
       if (hoverIndex == null) return floor
+      if (horizontal) return Math.max(floor, mTop + yCenter(hoverIndex))
       let minY = Number.POSITIVE_INFINITY
       for (const key of configKeys) {
-        const b = bands[key]?.[hoverIndex]
-        if (b) minY = Math.min(minY, y(b[1]))
+        const value = data[hoverIndex]?.[key]
+        if (typeof value === "number" && Number.isFinite(value)) {
+          minY = Math.min(minY, y(value))
+        }
       }
       if (!Number.isFinite(minY)) return floor
       return Math.max(floor, mTop + minY)
@@ -382,17 +593,16 @@ export function useChartController({
     heading: (i, labelKey) =>
       labelKey ? String(data[i]?.[labelKey] ?? "") : null,
     itemsAt: (i) =>
-      configKeys.map((name) => {
+      tooltipNames.map((name) => {
         const raw = data[i]?.[name]
+        const owner = tooltipOwner[name]
+        const emphasis = selectedDataKey ?? focusDataKey
         return {
           name,
           label: config[name]?.label ?? name,
           value: typeof raw === "number" ? raw : 0,
-          seed: seedOf(name),
-          dimmed: (() => {
-            const emphasis = selectedDataKey ?? focusDataKey
-            return emphasis !== null && emphasis !== name
-          })(),
+          seed: seedOf(owner ?? name),
+          dimmed: emphasis !== null && owner != null && emphasis !== owner,
         }
       }),
   }), [
@@ -409,9 +619,12 @@ export function useChartController({
     mLeft,
     mTop,
     cursorX,
-    bands,
+    horizontal,
+    yCenter,
     y,
     data,
+    tooltipNames,
+    tooltipOwner,
   ])
 
   // Memoized: this is the ChartContext value. A fresh object here would
@@ -427,13 +640,20 @@ export function useChartController({
       data,
       dataLength: data.length,
       stackType,
+      layout,
+      xKey,
+      categoryKey,
       margins: stableMargins,
       plot: { width: plotWidth, height: plotHeight },
       ready,
+      x,
       xCenter,
+      yCenter,
       bandwidth,
       indexAtX,
+      indexAtPoint,
       barSlot,
+      barRect,
       y,
       bands,
       max,
@@ -469,14 +689,21 @@ export function useChartController({
       configKeys,
       data,
       stackType,
+      layout,
+      xKey,
+      categoryKey,
       stableMargins,
       plotWidth,
       plotHeight,
       ready,
+      x,
       xCenter,
+      yCenter,
       bandwidth,
       indexAtX,
+      indexAtPoint,
       barSlot,
+      barRect,
       y,
       bands,
       max,

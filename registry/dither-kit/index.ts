@@ -6,7 +6,7 @@ export {
   type DitherAvatarProps,
 } from "./avatar"
 export { Bar, type BarProps } from "./bar"
-export { BarChart } from "./bar-chart"
+export { BarChart, type BarChartProps } from "./bar-chart"
 export { BlockLegend } from "./block-legend"
 export {
   type ButtonVariant,
@@ -16,6 +16,7 @@ export {
 export type { CartesianChartProps } from "./cartesian-root"
 export type {
   AreaVariant,
+  CartesianLayout,
   ChartConfig,
   ChartType,
   Margins,
@@ -42,8 +43,12 @@ export { Pie, type PieProps } from "./pie"
 export { PieChart, type PieChartProps } from "./pie-chart"
 export { Radar, type RadarProps } from "./radar"
 export { RadarChart, type RadarChartProps } from "./radar-chart"
+export { Range, type RangeProps } from "./range"
+export { RangeChart, type RangeChartProps } from "./range-chart"
 export { ReferenceLine } from "./reference-line"
-export type { StackType } from "./scales"
+export { Scatter, type ScatterProps } from "./scatter"
+export { ScatterChart, type ScatterChartProps } from "./scatter-chart"
+export type { NumericDomain, StackType } from "./scales"
 export { Sparkline, type SparklineProps } from "./sparkline"
 export { Tooltip, type TooltipVariant } from "./tooltip"
 export { XAxis } from "./x-axis"

@@ -29,7 +29,9 @@ Available items:
 | item | what you get |
 | --- | --- |
 | `area-chart` | area + line charts, includes `Sparkline` |
-| `bar-chart` | grouped / stacked bars |
+| `bar-chart` | vertical or horizontal grouped / stacked bars |
+| `scatter-chart` | numeric x/y scatter plots |
+| `range-chart` | horizontal low/value/high intervals |
 | `pie-chart` | pie / donut |
 | `radar-chart` | radar |
 | `avatar` | generative mirrored pixel avatars (standalone) |
@@ -59,6 +61,22 @@ const config = { desktop: { label: "Desktop", color: "blue" } }
   <Tooltip labelKey="month" />
   <Area dataKey="desktop" variant="gradient" />
 </AreaChart>
+```
+
+```tsx
+<ScatterChart data={data} config={config} xKey="cost" xDomain={[0, maxCost]} yDomain={[0, 1]}>
+  <XAxis />
+  <YAxis />
+  <Tooltip labelKey="model" />
+  <Scatter dataKey="score" labelKey="model" />
+</ScatterChart>
+
+<RangeChart data={data} config={config} categoryKey="model" domain={[0, 1]}>
+  <XAxis />
+  <YAxis dataKey="model" />
+  <Tooltip labelKey="model" />
+  <Range dataKey="mean" lowKey="low" highKey="high" />
+</RangeChart>
 ```
 
 - `variant`: `gradient` | `dotted` | `hatched` | `solid`

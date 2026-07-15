@@ -16,8 +16,27 @@ export function XAxis({
   const ctx = useChartPart("XAxis")
   if (!ctx.ready) return null
 
-  const step = Math.max(1, Math.ceil(ctx.dataLength / maxTicks))
   const y = ctx.plot.height + tickMargin
+  if (ctx.layout === "horizontal" || ctx.chartType === "scatter") {
+    return (
+      <g className="fill-current font-mono text-[10px] text-muted-foreground">
+        {ctx.x.ticks(maxTicks).map((tick, index) => (
+          <text
+            key={tick}
+            x={ctx.x(tick)}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="hanging"
+            fill="currentColor"
+          >
+            {tickFormatter ? tickFormatter(tick, index) : tick}
+          </text>
+        ))}
+      </g>
+    )
+  }
+
+  const step = Math.max(1, Math.ceil(ctx.dataLength / maxTicks))
 
   return (
     <g className="fill-current font-mono text-[10px] text-muted-foreground">
