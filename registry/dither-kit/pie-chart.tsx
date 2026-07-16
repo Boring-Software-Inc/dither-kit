@@ -23,6 +23,7 @@ export type PieChartProps<TData extends Row> = {
   animate?: boolean
   animationDuration?: number
   replayToken?: number
+  reanimate?: boolean
   bloom?: BloomInput
   bloomOnHover?: boolean
   defaultSelectedDataKey?: string | null

@@ -187,6 +187,7 @@ export function useChartController({
   animate = true,
   animationDuration = 900,
   replayToken = 0,
+  reanimate = true,
   markerIndex = null,
   hovered = false,
   bloom = "off",
@@ -203,6 +204,7 @@ export function useChartController({
   animate?: boolean
   animationDuration?: number
   replayToken?: number
+  reanimate?: boolean
   markerIndex?: number | null
   hovered?: boolean
   bloom?: BloomInput
@@ -221,7 +223,7 @@ export function useChartController({
   // Memoized: configKeys is the dep that drives `bands`, `common` and the
   // canvas `targets` memo — a fresh array each render would bust all of them.
   const configKeys = useMemo(() => Object.keys(config), [config])
-  const revision = useRevision(data, replayToken)
+  const revision = useRevision(reanimate ? data : null, replayToken)
 
   const [selectedDataKey, setSelectedDataKey] = useState<string | null>(
     defaultSelectedDataKey

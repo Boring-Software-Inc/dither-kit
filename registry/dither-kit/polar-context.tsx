@@ -100,6 +100,7 @@ export function usePolarController({
   animate = true,
   animationDuration = 900,
   replayToken = 0,
+  reanimate = true,
   bloom = "off",
   bloomOnHover = false,
   defaultSelectedDataKey = null,
@@ -116,6 +117,7 @@ export function usePolarController({
   animate?: boolean
   animationDuration?: number
   replayToken?: number
+  reanimate?: boolean
   bloom?: BloomInput
   bloomOnHover?: boolean
   defaultSelectedDataKey?: string | null
@@ -130,7 +132,7 @@ export function usePolarController({
 
   // Memoized: drives `pie`/`radar`/`common` — a fresh array would bust them.
   const configKeys = useMemo(() => Object.keys(config), [config])
-  const revision = useRevision(data, replayToken)
+  const revision = useRevision(reanimate ? data : null, replayToken)
 
   const [selectedDataKey, setSelectedDataKey] = useState<string | null>(
     defaultSelectedDataKey

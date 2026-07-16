@@ -48,6 +48,7 @@ export type PolarRootProps<TData extends Row> = {
   animate?: boolean
   animationDuration?: number
   replayToken?: number
+  reanimate?: boolean
   bloom?: BloomInput
   bloomOnHover?: boolean
   defaultSelectedDataKey?: string | null
@@ -69,6 +70,7 @@ export function PolarRoot<TData extends Row>({
   animate = true,
   animationDuration = 900,
   replayToken = 0,
+  reanimate = true,
   bloom = "off",
   bloomOnHover = false,
   defaultSelectedDataKey = null,
@@ -90,6 +92,7 @@ export function PolarRoot<TData extends Row>({
     animate,
     animationDuration,
     replayToken,
+    reanimate,
     bloom,
     bloomOnHover,
     defaultSelectedDataKey,
