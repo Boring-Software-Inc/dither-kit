@@ -58,6 +58,7 @@ export function PieCanvas() {
     const animate = state.current.animate && !reduce
     const duration = state.current.animationDuration
     let raf = 0
+    let visible = false
     let animStart = 0
     let lastProg = -1
     let lastRevision = state.current.revision
@@ -129,6 +130,10 @@ export function PieCanvas() {
     }
 
     const draw = (now: number) => {
+      if (!visible) {
+        raf = 0
+        return
+      }
       raf = requestAnimationFrame(draw)
       const s = state.current
       if (!s.ready || !s.pie) return
@@ -187,8 +192,25 @@ export function PieCanvas() {
       needsFill = false
     }
 
-    raf = requestAnimationFrame(draw)
-    return () => cancelAnimationFrame(raf)
+    if (typeof IntersectionObserver === "undefined") {
+      visible = true
+      raf = requestAnimationFrame(draw)
+      return () => cancelAnimationFrame(raf)
+    }
+    const io = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      if (visible) {
+        if (!raf) raf = requestAnimationFrame(draw)
+      } else if (raf) {
+        cancelAnimationFrame(raf)
+        raf = 0
+      }
+    })
+    io.observe(canvas)
+    return () => {
+      io.disconnect()
+      cancelAnimationFrame(raf)
+    }
   }, [cols, rows, width, height])
 
   const bloom = bloomLayerStyle(
