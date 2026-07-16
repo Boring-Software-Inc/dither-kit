@@ -65,6 +65,13 @@ function layerOf(node: ReactNode): "back" | "dom" | "svg" {
   return (node.type as { chartLayer?: "back" | "dom" }).chartLayer ?? "svg"
 }
 
+function isFlowLegend(node: ReactNode): boolean {
+  return (
+    isValidElement(node) &&
+    (node.props as { placement?: string }).placement === "block"
+  )
+}
+
 /**
  * Shared root for the cartesian dither charts (area, line, bar). Owns the
  * measured size, the shared context, and pointer interaction; every visual is
@@ -123,11 +130,14 @@ export function CartesianRoot<TData extends Row>({
   const backChildren: ReactNode[] = []
   const svgChildren: ReactNode[] = []
   const domChildren: ReactNode[] = []
+  const flowChildren: ReactNode[] = []
   Children.forEach(children, (child) => {
     const layer = layerOf(child)
     if (layer === "back") backChildren.push(child)
-    else if (layer === "dom") domChildren.push(child)
-    else svgChildren.push(child)
+    else if (layer === "dom") {
+      if (isFlowLegend(child)) flowChildren.push(child)
+      else domChildren.push(child)
+    } else svgChildren.push(child)
   })
 
   const onMove = (clientX: number) => {
@@ -144,45 +154,48 @@ export function CartesianRoot<TData extends Row>({
   return (
     <ChartContext value={ctx}>
       <CommonChartContext value={ctx.common}>
-        <div
-          ref={ref}
-          className={cn("relative h-full w-full", className)}
-          onPointerEnter={() => ctx.setMouseInChart(true)}
-          onPointerMove={interactive ? (e) => onMove(e.clientX) : undefined}
-          onPointerLeave={() => {
-            ctx.setMouseInChart(false)
-            ctx.setHoverIndex(null)
-            onHoverChange?.(null)
-          }}
-        >
-          {ctx.ready && backChildren.length > 0 && (
-            <svg
-              width={size.width}
-              height={size.height}
-              className="absolute inset-0 overflow-visible"
-              aria-hidden
-              role="presentation"
-            >
-              <g transform={`translate(${margins.left},${margins.top})`}>
-                {backChildren}
-              </g>
-            </svg>
-          )}
-          <Canvas />
-          {ctx.ready && (
-            <svg
-              width={size.width}
-              height={size.height}
-              className="absolute inset-0 overflow-visible"
-              role="img"
-              aria-label="Chart"
-            >
-              <g transform={`translate(${margins.left},${margins.top})`}>
-                {svgChildren}
-              </g>
-            </svg>
-          )}
-          {domChildren}
+        <div className={cn("flex h-full w-full flex-col", className)}>
+          {flowChildren}
+          <div
+            ref={ref}
+            className="relative min-h-0 w-full flex-1"
+            onPointerEnter={() => ctx.setMouseInChart(true)}
+            onPointerMove={interactive ? (e) => onMove(e.clientX) : undefined}
+            onPointerLeave={() => {
+              ctx.setMouseInChart(false)
+              ctx.setHoverIndex(null)
+              onHoverChange?.(null)
+            }}
+          >
+            {ctx.ready && backChildren.length > 0 && (
+              <svg
+                width={size.width}
+                height={size.height}
+                className="absolute inset-0 overflow-visible"
+                aria-hidden
+                role="presentation"
+              >
+                <g transform={`translate(${margins.left},${margins.top})`}>
+                  {backChildren}
+                </g>
+              </svg>
+            )}
+            <Canvas />
+            {ctx.ready && (
+              <svg
+                width={size.width}
+                height={size.height}
+                className="absolute inset-0 overflow-visible"
+                role="img"
+                aria-label="Chart"
+              >
+                <g transform={`translate(${margins.left},${margins.top})`}>
+                  {svgChildren}
+                </g>
+              </svg>
+            )}
+            {domChildren}
+          </div>
         </div>
       </CommonChartContext>
     </ChartContext>

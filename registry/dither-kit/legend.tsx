@@ -14,16 +14,19 @@ import { rgb } from "./palette"
 export function Legend({
   isClickable = false,
   align = "right",
+  placement = "overlay",
 }: {
   isClickable?: boolean
   align?: "left" | "center" | "right"
+  placement?: "overlay" | "block"
 }) {
   const chart = useCommonChart()
 
   return (
     <div
       className={cn(
-        "pointer-events-none absolute inset-x-0 top-0 flex flex-wrap gap-3 px-1",
+        "pointer-events-none flex flex-wrap gap-3 px-1",
+        placement === "overlay" ? "absolute inset-x-0 top-0" : "w-full pb-2",
         align === "right" && "justify-end",
         align === "center" && "justify-center",
         align === "left" && "justify-start"
