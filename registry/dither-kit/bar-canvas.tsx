@@ -128,6 +128,7 @@ export function BarCanvas() {
     }
 
     let raf = 0
+    let visible = false
     let animStart = 0
     let lastProg = -1
     let lastRevision = state.current.revision
@@ -138,6 +139,10 @@ export function BarCanvas() {
     let lastHover: number | null | undefined = Symbol() as never
 
     const draw = (now: number) => {
+      if (!visible) {
+        raf = 0
+        return
+      }
       raf = requestAnimationFrame(draw)
       const s = state.current
       if (!s.ready) return
@@ -191,8 +196,25 @@ export function BarCanvas() {
       needsFill = false
     }
 
-    raf = requestAnimationFrame(draw)
-    return () => cancelAnimationFrame(raf)
+    if (typeof IntersectionObserver === "undefined") {
+      visible = true
+      raf = requestAnimationFrame(draw)
+      return () => cancelAnimationFrame(raf)
+    }
+    const io = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      if (visible) {
+        if (!raf) raf = requestAnimationFrame(draw)
+      } else if (raf) {
+        cancelAnimationFrame(raf)
+        raf = 0
+      }
+    })
+    io.observe(canvas)
+    return () => {
+      io.disconnect()
+      cancelAnimationFrame(raf)
+    }
   }, [cols, rows, width])
 
   const bloomActive = ctx.bloomOnHover
