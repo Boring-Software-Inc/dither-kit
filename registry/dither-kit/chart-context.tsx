@@ -34,6 +34,7 @@ type Row = Record<string, unknown>
 export type AreaVariant = "gradient" | "dotted" | "hatched" | "solid"
 export type StrokeVariant = "solid" | "dashed"
 export type SeriesKind = "area" | "line" | "bar"
+export type Curve = "linear" | "monotone"
 
 /** What each series part (<Area />, <Line />, <Bar />) registers so the canvas
  * knows which series to paint and how. */
@@ -42,6 +43,7 @@ export type SeriesSpec = {
   kind: SeriesKind
   variant: AreaVariant
   strokeVariant: StrokeVariant
+  curve?: Curve
 }
 
 export type ChartContextValue = {
@@ -241,7 +243,8 @@ export function useChartController({
       return cur &&
         cur.kind === spec.kind &&
         cur.variant === spec.variant &&
-        cur.strokeVariant === spec.strokeVariant
+        cur.strokeVariant === spec.strokeVariant &&
+        cur.curve === spec.curve
         ? prev
         : { ...prev, [spec.dataKey]: spec }
     })

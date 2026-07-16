@@ -113,6 +113,47 @@ export function resample(src: number[], cols: number): number[] {
   return out
 }
 
+export function resampleMonotone(src: number[], cols: number): number[] {
+  const n = src.length
+  if (n === 0) return new Array<number>(cols).fill(0)
+  if (n === 1) return new Array<number>(cols).fill(src[0])
+  const dy = Array.from({ length: n - 1 }, (_, i) => src[i + 1] - src[i])
+  const m = new Array<number>(n)
+  m[0] = dy[0]
+  m[n - 1] = dy[n - 2]
+  for (let i = 1; i < n - 1; i++) {
+    m[i] = dy[i - 1] * dy[i] <= 0 ? 0 : (dy[i - 1] + dy[i]) / 2
+  }
+  for (let i = 0; i < n - 1; i++) {
+    if (dy[i] === 0) {
+      m[i] = 0
+      m[i + 1] = 0
+      continue
+    }
+    const a = m[i] / dy[i]
+    const b = m[i + 1] / dy[i]
+    const s = a * a + b * b
+    if (s > 9) {
+      const t = 3 / Math.sqrt(s)
+      m[i] = t * a * dy[i]
+      m[i + 1] = t * b * dy[i]
+    }
+  }
+  const out = new Array<number>(cols)
+  const last = n - 1
+  for (let c = 0; c < cols; c++) {
+    const t = cols === 1 ? 0 : (c / (cols - 1)) * last
+    const i = Math.min(last - 1, Math.floor(t))
+    const u = t - i
+    const h00 = 2 * u ** 3 - 3 * u ** 2 + 1
+    const h10 = u ** 3 - 2 * u ** 2 + u
+    const h01 = -2 * u ** 3 + 3 * u ** 2
+    const h11 = u ** 3 - u ** 2
+    out[c] = h00 * src[i] + h10 * m[i] + h01 * src[i + 1] + h11 * m[i + 1]
+  }
+  return out
+}
+
 /** Backing-canvas resolution for a plot rect — low-res, scaled up `pixelated`. */
 export function backingSize(width: number, height: number) {
   return {

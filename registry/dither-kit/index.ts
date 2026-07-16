@@ -18,6 +18,7 @@ export type {
   AreaVariant,
   ChartConfig,
   ChartType,
+  Curve,
   Margins,
   SeriesKind,
   StrokeVariant,
